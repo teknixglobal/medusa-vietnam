@@ -1,6 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { ContainerRegistrationKeys, MedusaError } from "@medusajs/framework/utils"
-import { codeFromProviderId, METHOD_INFO, pickLocale } from "../../../../lib/i18n"
+import { codeFromProviderId, METHOD_INFO, pickLocale } from "@teknixglobal/medusa-vietnam-core"
 
 /**
  * GET /store/vietnam-payments/methods?region_id=reg_...&locale=vi

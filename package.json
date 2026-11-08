@@ -1,52 +1,19 @@
 {
-  "name": "@teknixglobal/medusa-vietnam",
-  "version": "0.1.0",
-  "description": "Vietnamese payment providers for Medusa v2: SePay, COD, VNPay. Works with plain Medusa and Mercur.",
-  "author": "Teknix (https://github.com/teknixglobal)",
+  "name": "medusa-vietnam",
+  "private": true,
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git"
-  },
-  "files": [
-    ".medusa/server",
-    "README.md",
-    "CONTRACT.md",
-    "LICENSE"
-  ],
-  "exports": {
-    "./package.json": "./package.json",
-    "./.medusa/server/src/modules/*": "./.medusa/server/src/modules/*/index.js",
-    "./providers/*": "./.medusa/server/src/providers/*/index.js",
-    "./*": "./.medusa/server/src/*.js",
-    "./admin": {
-      "import": "./.medusa/server/src/admin/index.mjs",
-      "require": "./.medusa/server/src/admin/index.js",
-      "default": "./.medusa/server/src/admin/index.js"
-    }
-  },
-  "keywords": [
-    "medusa",
-    "medusa-plugin",
-    "medusa-plugin-payment",
-    "medusa-v2",
-    "vietnam",
-    "sepay",
-    "vnpay",
-    "vietqr",
-    "cod"
-  ],
   "packageManager": "pnpm@10.11.1",
   "scripts": {
-    "build": "medusa plugin:build",
-    "dev": "medusa plugin:develop",
-    "publish:local": "medusa plugin:publish",
-    "lint": "medusa lint",
-    "typecheck": "tsc --noEmit",
+    "build": "pnpm -r --workspace-concurrency=1 build",
+    "typecheck": "pnpm -r typecheck",
     "test": "jest --runInBand",
-    "prepublishOnly": "medusa plugin:build"
+    "publish:local": "pnpm -r --workspace-concurrency=1 publish:local",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@changesets/cli": "3.0.3",
     "@medusajs/admin-sdk": "2.22.3",
     "@medusajs/admin-shared": "2.22.3",
     "@medusajs/cli": "2.22.3",
@@ -69,10 +36,6 @@
     "typescript": "^5.6.2",
     "vite": "^7.3.7",
     "yalc": "^1.0.0-pre.53"
-  },
-  "peerDependencies": {
-    "@medusajs/framework": "~2.22.3",
-    "@medusajs/medusa": "~2.22.3"
   },
   "engines": {
     "node": ">=22.12.0"

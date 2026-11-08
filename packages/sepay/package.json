@@ -1,0 +1,44 @@
+{
+  "name": "@teknixglobal/medusa-payment-sepay",
+  "version": "0.1.0",
+  "description": "SePay payment gateway provider for Medusa v2: VietQR, NAPAS, cards, IPN.",
+  "author": "Teknix (https://github.com/teknixglobal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "directory": "packages/sepay"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "medusa",
+    "medusa-v2",
+    "medusa-plugin-payment",
+    "vietnam",
+    "sepay",
+    "vietqr",
+    "napas"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "publish:local": "yalc publish --no-scripts"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": "~2.22.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@teknixglobal/medusa-vietnam-core": "workspace:^"
+  }
+}

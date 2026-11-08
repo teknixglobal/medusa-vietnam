@@ -20,7 +20,7 @@ import type {
   UpdatePaymentOutput,
   WebhookActionResult,
 } from "@medusajs/framework/types"
-import { assertVnd, toVndInteger } from "../../lib/amount"
+import { assertVnd, toVndInteger } from "@teknixglobal/medusa-vietnam-core"
 
 export type CodOptions = {
   /** Reject COD above this amount (VND). Empty: no limit. */

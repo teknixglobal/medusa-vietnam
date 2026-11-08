@@ -1,17 +1,29 @@
-# CONTRACT · @teknixglobal/medusa-vietnam
+# CONTRACT · medusa-vietnam
 
-The interface between this plugin, a Medusa backend, and a storefront. Changing anything here is a breaking change (bump the minor version while < 1.0).
+The interface between the packages of this repo, a Medusa backend, and a storefront. Changing anything here is a breaking change for every gateway package (minor bump while < 1.0).
+
+| Package | Role |
+|---|---|
+| `@teknixglobal/medusa-vietnam-core` | Shared helpers (not installed directly) |
+| `@teknixglobal/medusa-payment-cod` | COD provider |
+| `@teknixglobal/medusa-payment-sepay` | SePay provider |
+| `@teknixglobal/medusa-vietnam` | Optional plugin: store route with vi/en labels |
 
 ## 1. Install
 
+```bash
+npm i @teknixglobal/medusa-payment-cod @teknixglobal/medusa-payment-sepay
+npm i @teknixglobal/medusa-vietnam   # optional: GET /store/vietnam-payments/methods
+```
+
 ```ts
 // medusa-config.ts
-plugins: [{ resolve: "@teknixglobal/medusa-vietnam", options: {} }],
+plugins: [{ resolve: "@teknixglobal/medusa-vietnam", options: {} }], // optional
 modules: [{
   resolve: "@medusajs/medusa/payment",
   options: { providers: [
-    { resolve: "@teknixglobal/medusa-vietnam/providers/cod", id: "cod", options: { max_amount: 5000000 } },
-    { resolve: "@teknixglobal/medusa-vietnam/providers/sepay", id: "sepay", options: {
+    { resolve: "@teknixglobal/medusa-payment-cod", id: "cod", options: { max_amount: 5000000 } },
+    { resolve: "@teknixglobal/medusa-payment-sepay", id: "sepay", options: {
         env: process.env.SEPAY_ENV,                    // sandbox | production
         merchant_id: process.env.SEPAY_MERCHANT_ID,
         secret_key: process.env.SEPAY_SECRET_KEY,
@@ -69,11 +81,11 @@ Then enable the providers on the region (Admin > Settings > Regions, or `updateR
 1. The gateway sends the customer to `return_url` with `result`.
 2. `result=success`: the storefront completes the cart (`POST /store/carts/:id/complete`). The provider's `authorizePayment` asks the gateway API for the real status and compares the paid amount with the signed amount; the redirect itself proves nothing.
 3. `result=cancel`: back to the payment step. `result=error`: show an error.
-4. Webhook / IPN: `POST /hooks/payment/sepay_sepay` (Medusa standard route). The plugin re-reads the order from the SePay API before acting, then Medusa's `processPaymentWorkflow` captures the payment and completes the cart even if the customer never came back.
+4. Webhook / IPN: `POST /hooks/payment/sepay_sepay` (Medusa standard route; behind Cloudflare Access see docs/IPN-TUNNEL.md). The plugin re-reads the order from the SePay API before acting, then Medusa's `processPaymentWorkflow` captures the payment and completes the cart even if the customer never came back.
 
 ## 6. Store API
 
-`GET /store/vietnam-payments/methods?region_id=reg_...&locale=vi` (publishable key required)
+`GET /store/vietnam-payments/methods?region_id=reg_...&locale=vi` (publishable key required; needs the optional `@teknixglobal/medusa-vietnam` plugin)
 
 ```json
 { "locale": "vi", "payment_methods": [

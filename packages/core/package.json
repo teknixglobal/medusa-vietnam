@@ -1,0 +1,39 @@
+{
+  "name": "@teknixglobal/medusa-vietnam-core",
+  "version": "0.1.0",
+  "description": "Shared helpers for Vietnamese payment providers on Medusa v2: VND amounts, HMAC, return URL checks, next_action contract, vi/en labels.",
+  "author": "Teknix (https://github.com/teknixglobal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "directory": "packages/core"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "keywords": [
+    "medusa",
+    "medusa-v2",
+    "medusa-plugin-payment",
+    "vietnam",
+    "vnd"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "publish:local": "yalc publish --no-scripts"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": "~2.22.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

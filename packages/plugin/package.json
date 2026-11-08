@@ -1,0 +1,71 @@
+{
+  "name": "@teknixglobal/medusa-vietnam",
+  "version": "0.1.0",
+  "description": "Optional Medusa v2 plugin for Vietnamese payments: GET /store/vietnam-payments/methods (vi/en labels of the enabled VN providers).",
+  "author": "Teknix (https://github.com/teknixglobal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "directory": "packages/plugin"
+  },
+  "files": [
+    ".medusa/server",
+    "README.md"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./.medusa/server/src/modules/*": "./.medusa/server/src/modules/*/index.js",
+    "./providers/*": "./.medusa/server/src/providers/*/index.js",
+    "./*": "./.medusa/server/src/*.js",
+    "./admin": {
+      "import": "./.medusa/server/src/admin/index.mjs",
+      "require": "./.medusa/server/src/admin/index.js",
+      "default": "./.medusa/server/src/admin/index.js"
+    }
+  },
+  "keywords": [
+    "medusa",
+    "medusa-plugin",
+    "medusa-v2",
+    "vietnam"
+  ],
+  "scripts": {
+    "build": "medusa plugin:build",
+    "typecheck": "tsc --noEmit",
+    "publish:local": "yalc publish --no-scripts"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": "~2.22.3",
+    "@medusajs/medusa": "~2.22.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@teknixglobal/medusa-vietnam-core": "workspace:^"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@medusajs/admin-sdk": "2.22.3",
+    "@medusajs/admin-shared": "2.22.3",
+    "@medusajs/cli": "2.22.3",
+    "@medusajs/framework": "2.22.3",
+    "@medusajs/icons": "2.22.3",
+    "@medusajs/medusa": "2.22.3",
+    "@medusajs/test-utils": "2.22.3",
+    "@medusajs/ui": "4.2.9",
+    "@swc/core": "^1.7.28",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.2.25",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "vite": "^7.3.7",
+    "yalc": "^1.0.0-pre.53"
+  }
+}

@@ -1,44 +1,36 @@
 # medusa-vietnam
 
-Vietnamese payment providers for [Medusa](https://medusajs.com) v2 (tested on 2.22.3), usable with plain Medusa and [Mercur](https://github.com/mercurjs/mercur).
-Cổng thanh toán Việt Nam cho Medusa v2 (đã thử trên 2.22.3), dùng được với Medusa thường và Mercur.
+Vietnamese payment gateways for [Medusa](https://medusajs.com) v2 (tested on 2.22.3), usable with plain Medusa and [Mercur](https://github.com/mercurjs/mercur). One package per gateway, shared helpers in `core`.
+Cổng thanh toán Việt Nam cho Medusa v2 (đã thử trên 2.22.3), dùng được với Medusa thường và Mercur. Mỗi cổng một gói, phần dùng chung nằm trong `core`.
 
-| Gateway | Status | Notes |
+| Package | Gateway | Status |
 |---|---|---|
-| COD (thanh toán khi nhận hàng) | ready | capture in Admin when cash is collected |
-| SePay (VietQR, NAPAS, card) | ready, sandbox test pending | hosted payment page, IPN |
-| VNPay | next | |
-| payOS, MoMo, ZaloPay | later | |
+| [`@teknixglobal/medusa-payment-cod`](packages/cod) | Cash on delivery | ready |
+| [`@teknixglobal/medusa-payment-sepay`](packages/sepay) | SePay: VietQR, NAPAS, card | ready, sandbox verified 2026-11-09 |
+| `@teknixglobal/medusa-payment-vnpay` | VNPay | next |
+| `@teknixglobal/medusa-payment-payos` | payOS | later |
+| [`@teknixglobal/medusa-vietnam`](packages/plugin) | optional plugin: `GET /store/vietnam-payments/methods` (vi/en labels) | ready |
+| [`@teknixglobal/medusa-vietnam-core`](packages/core) | shared helpers, installed as a dependency | ready |
 
-Full integration contract: [CONTRACT.md](./CONTRACT.md).
+- Integration contract (config, env, storefront `next_action`, return flow, refunds): [CONTRACT.md](CONTRACT.md)
+- Webhooks behind Cloudflare Tunnel + Access: [docs/IPN-TUNNEL.md](docs/IPN-TUNNEL.md)
+- Adding a new gateway (checklist, rules per method, tests, lessons): [docs/ADDING-A-GATEWAY.md](docs/ADDING-A-GATEWAY.md)
 
-## Install / Cài đặt
+## Quick start
 
 ```bash
-npm i @teknixglobal/medusa-vietnam   # or pnpm / yarn
+npm i @teknixglobal/medusa-payment-cod @teknixglobal/medusa-payment-sepay
 ```
 
-Add the plugin and providers to `medusa-config.ts` (see CONTRACT.md section 1), set the env variables, run `medusa db:migrate`, then enable the providers on your region in Admin.
-Thêm plugin và provider vào `medusa-config.ts` (CONTRACT.md mục 1), điền biến môi trường, chạy `medusa db:migrate`, rồi bật provider cho region trong Admin.
+Register the providers in `medusa-config.ts` (CONTRACT.md section 1), set the env variables, restart, then enable the providers on your region in Admin.
+Khai báo provider trong `medusa-config.ts` (CONTRACT.md mục 1), điền biến môi trường, khởi động lại, rồi bật provider cho region trong Admin.
 
-### SePay sandbox
+The storefront reads `payment_session.data.next_action` and posts a form, redirects, or completes the cart. Reference implementation for the Medusa Next.js starter: YaahSport demo shop, `payment-button/vn-gateway-payment-button.tsx` and `app/api/payment-return/route.ts`.
 
-1. Create an account at my.sepay.vn, open Payment Gateway, switch to Sandbox and copy the MERCHANT ID and SECRET KEY (shown once).
-   Tạo tài khoản my.sepay.vn, vào Cổng thanh toán, chọn Sandbox, lấy MERCHANT ID và SECRET KEY (chỉ hiện một lần).
-2. Put them in the backend `.env` as `SEPAY_MERCHANT_ID`, `SEPAY_SECRET_KEY`, with `SEPAY_ENV=sandbox`. Never commit them.
-3. Optional IPN: set the IPN URL to `https://<your-backend>/hooks/payment/sepay_sepay`, auth type SECRET_KEY, and copy that key to `SEPAY_IPN_SECRET_KEY`. The URL must be public HTTPS.
-4. Return URLs must be on a public host: test the storefront through a tunnel or a real domain, not `localhost`.
+## How payments are confirmed
 
-## Storefront
-
-The storefront reads `payment_session.data.next_action` and either posts a form, redirects, or completes the cart (CONTRACT.md section 4). A reference implementation for the Medusa Next.js starter (`dtc-starter`) lives in the YaahSport demo shop: `payment-button/vn-gateway-payment-button.tsx` and `app/api/payment-return/route.ts`.
-
-## Security
-
-- Every gateway callback is re-checked against the gateway API; redirects and IPN bodies are not trusted.
-- The paid amount must equal the signed amount, otherwise authorization fails.
-- Return URLs are restricted to configured origins (`return_url_origins`).
-- Secrets come from env only and are never logged.
+- The redirect back to the shop proves nothing: completing the cart makes the provider ask the gateway API, and the paid amount must equal the signed amount.
+- IPN/webhooks go through Medusa's `/hooks/payment/<provider>` and are re-checked against the gateway API before Medusa captures and completes the cart.
 
 ## Develop / Phát triển
 
@@ -46,12 +38,15 @@ Everything runs in a container (no Node on the host):
 
 ```bash
 docker compose run --rm dev pnpm install
-docker compose run --rm dev pnpm test
-docker compose run --rm dev pnpm build
-docker compose run --rm dev pnpm publish:local   # yalc store shared with the test shop
+docker compose run --rm dev pnpm test          # unit tests, all packages
+docker compose run --rm dev pnpm build         # core first, then gateways
+docker compose run --rm dev pnpm typecheck
+docker compose run --rm dev pnpm publish:local # yalc store shared with the test shop
 ```
 
-In the test shop backend: `npx medusa plugin:add @teknixglobal/medusa-vietnam`.
+Test shop (backend dir): `npx yalc add @teknixglobal/medusa-vietnam-core @teknixglobal/medusa-payment-cod @teknixglobal/medusa-payment-sepay`. Until `core` is on npm, the shop needs a pnpm override pointing `@teknixglobal/medusa-vietnam-core` at `file:./apps/backend/.yalc/@teknixglobal/medusa-vietnam-core`.
+
+Releases use [changesets](https://github.com/changesets/changesets): `pnpm changeset`, `pnpm version`, `pnpm release`.
 
 ## License
 

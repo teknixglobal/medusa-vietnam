@@ -1,4 +1,4 @@
-import { hmac } from "../../lib/crypto"
+import { hmac } from "@teknixglobal/medusa-vietnam-core"
 
 export type SepayEnv = "sandbox" | "production"
 
