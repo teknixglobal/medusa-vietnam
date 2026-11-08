@@ -3,7 +3,7 @@
 #   docker compose run --rm dev pnpm test
 #   docker compose run --rm dev pnpm build
 #   docker compose run --rm dev pnpm publish:local   # -> yalc store shared with the test shop
-# YALC_DIR points at the yalc store the test shop mounts (default: ../YaahSport/.data/yalc).
+# YALC_DIR points at the yalc store the test shop mounts (default: ../yaahsport/.data/yalc).
 name: medusa-vietnam
 
 services:
@@ -20,7 +20,7 @@ services:
       - ./:/srv
       - nm:/srv/node_modules
       - pnpm_store:/pnpm
-      - ${YALC_DIR:-../YaahSport/.data/yalc}:/root/.yalc
+      - ${YALC_DIR:-../yaahsport/.data/yalc}:/root/.yalc
 
 volumes:
   nm:
