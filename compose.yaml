@@ -1,0 +1,27 @@
+# Dev container for the plugin: install, test, build, publish to the local yalc store.
+# Nothing is installed on the host.
+#   docker compose run --rm dev pnpm test
+#   docker compose run --rm dev pnpm build
+#   docker compose run --rm dev pnpm publish:local   # -> yalc store shared with the test shop
+# YALC_DIR points at the yalc store the test shop mounts (default: ../YaahSport/.data/yalc).
+name: medusa-vietnam
+
+services:
+  dev:
+    image: node:22.23.4-bookworm-slim
+    working_dir: /srv
+    environment:
+      COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
+      npm_config_store_dir: /pnpm/store
+      MEDUSA_DISABLE_TELEMETRY: "true"
+    entrypoint: ["sh", "-c", "corepack enable >/dev/null 2>&1 && exec \"$$@\"", "--"]
+    command: ["pnpm", "test"]
+    volumes:
+      - ./:/srv
+      - nm:/srv/node_modules
+      - pnpm_store:/pnpm
+      - ${YALC_DIR:-../YaahSport/.data/yalc}:/root/.yalc
+
+volumes:
+  nm:
+  pnpm_store:

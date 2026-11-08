@@ -1,0 +1,10 @@
+node_modules
+.medusa
+.yalc
+yalc.lock
+coverage
+.env
+.env.*
+!.env.template
+.DS_Store
+*.log
