@@ -63,7 +63,8 @@ class CodProviderService extends AbstractPaymentProvider<CodOptions> {
 
   async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
     const amount = this.checkAmount(input.currency_code, input.amount)
-    return { data: { cod: { amount } } }
+    // Medusa stores the returned data as the whole session data: keep what is there.
+    return { data: { ...(input.data ?? {}), cod: { amount } } }
   }
 
   async authorizePayment(input: AuthorizePaymentInput): Promise<AuthorizePaymentOutput> {
