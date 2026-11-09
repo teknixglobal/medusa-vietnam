@@ -1,0 +1,45 @@
+{
+  "name": "@teknixglobal/medusa-vietnam-shipping-core",
+  "version": "0.1.0",
+  "description": "Shared core for Vietnamese shipping carriers on Medusa v2: carrier adapter contract, normalized shipment status, 2025 two-tier address data (34 provinces), parcel sizing, quote fallback, webhook helpers.",
+  "author": "Teknix (https://github.com/teknixglobal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "directory": "packages/shipping-core"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md",
+    "NOTICE"
+  ],
+  "keywords": [
+    "medusa",
+    "medusa-v2",
+    "medusa-plugin-fulfillment",
+    "vietnam",
+    "shipping",
+    "dvhc"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "publish:local": "yalc publish --no-scripts",
+    "data:vn-units": "node scripts/build-vn-units.mjs"
+  },
+  "dependencies": {
+    "@teknixglobal/medusa-vietnam-core": "workspace:^"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": "~2.22.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
