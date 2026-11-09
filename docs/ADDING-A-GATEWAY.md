@@ -76,3 +76,12 @@ pnpm release            # build + npm publish (needs npm login to the teknixglob
 - Gateways redirect only to public hosts: test through the tunnel domain, not `localhost`.
 - Behind a tunnel, Next.js `req.nextUrl.origin` is `localhost:8000`; build redirect URLs from `x-forwarded-host` (allow-listed).
 - SePay's "cancel" button only redirects; the order can still be paid with the same invoice afterwards.
+
+## Lessons from VNPay
+
+- Gateways with a GET IPN or a required response body: ship the package as a plugin with the provider under `src/providers/<code>` (resolve `<pkg>/providers/<code>`) plus routes under `src/api/hooks/<code>/`. The routes call `paymentModule.getWebhookActionAndData({ provider: "pp_<code>_<id>" })` so the secret stays in the provider, then emit `payment.webhook_received` like Medusa's own route.
+- One return URL with gateway codes: return to the backend (`/hooks/<code>/return`), verify, redirect to the stored `return_url` with `result=...`. The storefront stays gateway-agnostic, and the redirect target comes from the DB, not the query (no open redirect).
+- Reference charset: VNPay wants alphanumeric; Medusa ids have `_`. Use the ULID part and map back.
+- Dates in GMT+7: build them from UTC + 7h, never from the server's local time.
+- Read the SDK before using it: `vnpay` 2.5.2 looked fine but had 4 defects (see packages/vnpay/README.md). Its output is still a useful cross-check vector in tests.
+- Not verified on sandbox yet (2026-11-09): querydr/refund response checksums. If sandbox answers fail the check, compare field order with the docs first.
