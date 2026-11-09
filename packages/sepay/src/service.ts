@@ -181,14 +181,15 @@ class SepayProviderService extends AbstractPaymentProvider<SepayOptions> {
 
   async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
     const data = (input.data ?? {}) as SepaySessionData
+    // Medusa stores the returned data as the whole session data: never return {} here.
     if (!data.session_id || !data.sepay || !data.return_url) {
       // Caller did not pass the stored session data: nothing to rebuild.
-      return { data: {} }
+      return { data }
     }
     assertVnd(input.currency_code)
     const amount = toVndInteger(input.amount)
     if (amount === data.sepay.amount) {
-      return { data: {} }
+      return { data }
     }
     // New amount -> new invoice number, SePay invoices are unique.
     const session = this.buildSession(

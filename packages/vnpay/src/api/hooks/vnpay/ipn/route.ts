@@ -8,13 +8,14 @@ import {
   PaymentWebhookEvents,
 } from "@medusajs/framework/utils"
 import { checkCallback, VNPAY_PROVIDER_ID, webhookPayload } from "../../../../lib/hooks"
+import { recordVnpayCallbackWorkflow } from "../../../../workflows/record-vnpay-callback"
 
 /**
  * VNPay IPN: GET /hooks/vnpay/ipn (set it as the IPN URL in the VNPay merchant portal).
  * VNPay expects 200 + {"RspCode","Message"}. It stops on 00/02 and retries 01, 04, 97, 99
  * up to 10 times, 5 minutes apart.
  * A paid IPN is handed to Medusa's own webhook pipeline (payment.webhook_received ->
- * processPaymentWorkflow), which authorizes (querydr), captures and completes the cart
+ * processPaymentWorkflow), which authorizes, captures and completes the cart
  * even when the customer never comes back.
  */
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
@@ -41,6 +42,10 @@ export const GET = async (req: MedusaRequest, res: MedusaResponse) => {
       return reply("02", "Order already confirmed")
     }
     if (result.action === PaymentActions.SUCCESSFUL) {
+      // Keep VNPay's signed statement on the session: authorizePayment accepts it as proof.
+      await recordVnpayCallbackWorkflow(req.scope).run({
+        input: { session_id: session.id, query: req.query as Record<string, unknown> },
+      })
       const eventBus = req.scope.resolve<IEventBusModuleService>(Modules.EVENT_BUS)
       // Same event and delay as Medusa's POST /hooks/payment/:provider, to avoid racing
       // the storefront completing the cart.

@@ -229,6 +229,11 @@ export class VnpayClient {
       throw new VnpayApiError(`VNPay ${body.vnp_Command} -> HTTP ${res.status}: ${text.slice(0, 200)}`)
     }
     const json = (text ? JSON.parse(text) : {}) as T
+    // Error answers come unsigned (sandbox 2026-11-09: {"vnp_ResponseCode":"99","vnp_Message":"Unexpected error"}).
+    // Accept them as-is: a non-00 code can only lead to "pending" or an error, never to a capture.
+    if (!json.vnp_SecureHash && json.vnp_ResponseCode !== "00") {
+      return json
+    }
     if (!verifyApiResponse(json, responseFields, this.config.secret)) {
       // Do not act on an unsigned or tampered answer.
       throw new VnpayApiError(

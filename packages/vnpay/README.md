@@ -25,6 +25,8 @@ Merchant portal: IPN URL = `<backend_url>/hooks/vnpay/ipn`. Both `/hooks/vnpay/*
 | IPN | GET, signed; answer `{"RspCode","Message"}`; retried on 01/04/97/99 up to 10 times, 5 min apart |
 | Return URL | one URL, VNPay codes (`24` = cancelled); handled by `/hooks/vnpay/return` -> storefront `result=success|error|cancel` |
 | Refund | API, full (`02`) or partial (`03`), processed asynchronously by VNPay |
+| Proof of payment | a signed return/IPN query with `vnp_ResponseCode=00` and `vnp_TransactionStatus=00` (VNPay's docs make the IPN authoritative). The routes record it on the session through `updatePaymentSession`; the provider re-checks the signature. Without it, `querydr` is asked |
+| Sandbox caveat (2026-11-09) | `merchant_webapi` (querydr + refund) answered `99 Unexpected error` to every request, even through the SDK: payment works through callbacks, refunds fail with code 99 (use `refund_mode: "manual"` meanwhile) |
 | Production | payment and API URLs come with the VNPay contract: set `payment_url` and `api_url` |
 | SDK | `vnpay` (npm, MIT) not used: local-timezone dates, broken refund response check, non constant-time compare, no timeout. Its output is used as a cross-check in the tests |
 

@@ -36,7 +36,7 @@ cp -r packages/cod packages/<code>       # then rename
 |---|---|
 | `validateOptions` | Throw `INVALID_DATA` for missing credentials so a bad config fails at boot |
 | `initiatePayment` | `assertVnd`, `toVndInteger`, take `data.session_id` as the gateway reference, check `data.return_url` with `resolveReturnUrl`, return `data.next_action` (see CONTRACT.md 4) and status `pending`. Store the signed amount in `data.<code>.amount` |
-| `updatePayment` | Re-sign only if the caller passed the stored data and the amount changed; otherwise return `{ data: {} }` |
+| `updatePayment` | Re-sign only if the caller passed the stored data and the amount changed; otherwise return the data unchanged. **Never `{ data: {} }`**: Medusa stores the returned data as the whole session data |
 | `authorizePayment` | **Ask the gateway API**. Return `captured` for gateways that capture on payment, `authorized` for real auth/capture flows, `pending` when unpaid (Medusa then refuses to complete the cart), `error` when the paid amount differs from the signed amount |
 | `capturePayment` | No-op for capture-on-payment gateways |
 | `refundPayment` | Call the refund API, or record a manual refund in `data` and log a warning. Must support partial amounts (Mercur refunds per seller) |
@@ -84,4 +84,6 @@ pnpm release            # build + npm publish (needs npm login to the teknixglob
 - Reference charset: VNPay wants alphanumeric; Medusa ids have `_`. Use the ULID part and map back.
 - Dates in GMT+7: build them from UTC + 7h, never from the server's local time.
 - Read the SDK before using it: `vnpay` 2.5.2 looked fine but had 4 defects (see packages/vnpay/README.md). Its output is still a useful cross-check vector in tests.
-- Not verified on sandbox yet (2026-11-09): querydr/refund response checksums. If sandbox answers fail the check, compare field order with the docs first.
+- Sandbox E2E 2026-11-09: payment URL, return and IPN signatures verified with real VNPay transactions (orders #10, #11, cancel 24). The querydr/refund API answered `99 Unexpected error` to everything (even wrong checksum/TMN, even via the SDK): don't make a status API the only proof. A signed callback recorded on the session (route -> workflow -> `updatePaymentSession` -> provider `updatePayment` checks the signature) is enough; the status API is the fallback.
+- Error answers from VNPay's API are unsigned: accept unsigned non-00 answers (they can only mean pending/error), never an unsigned 00.
+- `updatePayment` returning `{ data: {} }` wipes the session data (Medusa replaces it). SePay and VNPay had this; fixed.

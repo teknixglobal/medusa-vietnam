@@ -113,7 +113,21 @@ export type VnpaySessionData = {
     bank_code?: string
     pay_date?: string
     refunds?: VnpayRefund[]
+    /** Last signed return/IPN callback for this txn ref, verified by this provider. */
+    callback?: VnpayVerifiedCallback
   }
+  /** Raw return/IPN query handed in by the plugin routes through updatePaymentSession; never stored. */
+  vnpay_callback?: Record<string, unknown>
+}
+
+export type VnpayVerifiedCallback = {
+  response_code?: string
+  transaction_status?: string
+  amount: number
+  transaction_no?: string
+  pay_date?: string
+  bank_code?: string
+  verified_at: string
 }
 
 /** Extra fields this provider puts in WebhookActionResult.data for the IPN route. */
@@ -277,15 +291,33 @@ class VnpayProviderService extends AbstractPaymentProvider<VnpayOptions> {
     return { id: session.vnpay!.txn_ref, data: session, status: PaymentSessionStatus.PENDING }
   }
 
+  /**
+   * Medusa stores the returned data as the whole session data: never return {} here.
+   * Also records a signed callback (`data.vnpay_callback`, from the plugin routes) after
+   * checking its signature here, so the hash secret never leaves the provider.
+   */
   async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
-    const data = (input.data ?? {}) as VnpaySessionData
+    const { vnpay_callback: rawCallback, ...data } = (input.data ?? {}) as VnpaySessionData
+    if (rawCallback && data.vnpay) {
+      const callback = this.verifyCallbackFor(rawCallback, data.vnpay.txn_ref)
+      if (callback) {
+        data.vnpay = {
+          ...data.vnpay,
+          callback,
+          transaction_no: callback.transaction_no || data.vnpay.transaction_no,
+          bank_code: callback.bank_code || data.vnpay.bank_code,
+          pay_date: callback.pay_date || data.vnpay.pay_date,
+        }
+      }
+      return { data }
+    }
     if (!data.session_id || !data.vnpay || !data.return_url) {
-      return { data: {} }
+      return { data }
     }
     assertVnd(input.currency_code)
     const amount = toVndInteger(input.amount)
     if (amount === data.vnpay.amount) {
-      return { data: {} }
+      return { data }
     }
     // vnp_TxnRef must be unique: a new amount gets a new reference.
     const session = this.buildSession(
@@ -300,11 +332,49 @@ class VnpayProviderService extends AbstractPaymentProvider<VnpayOptions> {
     return { data: session, status: PaymentSessionStatus.PENDING }
   }
 
-  /** Ask VNPay (querydr); the redirect back to the shop proves nothing on its own. */
+  /** Signed return/IPN query for this txn ref, or null. */
+  private verifyCallbackFor(query: Record<string, unknown>, txnRef: string): VnpayVerifiedCallback | null {
+    const verified = verifyCallback(query, this.options_.hash_secret, this.options_.tmn_code)
+    if (!verified || verified.vnp_TxnRef !== txnRef) {
+      this.logger_.warn(`VNPay: callback for ${txnRef} rejected (bad signature or other txn ref)`)
+      return null
+    }
+    return {
+      response_code: verified.vnp_ResponseCode,
+      transaction_status: verified.vnp_TransactionStatus,
+      amount: amountFromVnp(verified.vnp_Amount),
+      transaction_no: verified.vnp_TransactionNo,
+      pay_date: verified.vnp_PayDate,
+      bank_code: verified.vnp_BankCode,
+      verified_at: new Date().toISOString(),
+    }
+  }
+
+  /**
+   * Payment status. A signed "paid" callback (IPN or return, recorded by the plugin routes)
+   * is VNPay's own statement and is enough; otherwise ask VNPay with querydr.
+   * The plain redirect to the storefront proves nothing on its own.
+   */
   private async fetchVerified(data: VnpaySessionData): Promise<{ result: QueryDrResult; status: PaymentSessionStatus }> {
     const v = data.vnpay
     if (!v?.txn_ref) {
       throw new MedusaError(MedusaError.Types.INVALID_DATA, "VNPay: session has no vnp_TxnRef")
+    }
+    const cb = v.callback
+    if (cb?.response_code === "00" && cb.transaction_status === "00") {
+      const result: QueryDrResult = {
+        vnp_ResponseCode: "00",
+        vnp_TransactionStatus: "00",
+        vnp_TxnRef: v.txn_ref,
+        vnp_TransactionNo: cb.transaction_no,
+        vnp_PayDate: cb.pay_date,
+        vnp_BankCode: cb.bank_code,
+      }
+      if (cb.amount !== v.amount) {
+        this.logger_.error(`VNPay: callback amount ${cb.amount} for ${v.txn_ref}, expected ${v.amount}`)
+        return { result, status: PaymentSessionStatus.ERROR }
+      }
+      return { result, status: PaymentSessionStatus.CAPTURED }
     }
     const result = await this.client_.queryDr({
       txnRef: v.txn_ref,

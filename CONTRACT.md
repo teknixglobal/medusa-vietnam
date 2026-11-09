@@ -54,7 +54,7 @@ Then enable the providers on the region (Admin > Settings > Regions, or `updateR
 |---|---|---|---|
 | COD | `pp_cod_cod` | VND | Authorized at checkout; capture in Admin when the cash is collected |
 | SePay | `pp_sepay_sepay` | VND | Captured when SePay reports `CAPTURED` |
-| VNPay | `pp_vnpay_vnpay` | VND | Captured when querydr reports `vnp_TransactionStatus=00` |
+| VNPay | `pp_vnpay_vnpay` | VND | Captured on a signed paid callback (return or IPN, recorded by the plugin routes), else when querydr reports `vnp_TransactionStatus=00` |
 
 ## 2. Environment variables (backend)
 

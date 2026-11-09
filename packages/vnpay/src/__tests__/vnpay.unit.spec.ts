@@ -175,10 +175,44 @@ describe("provider", () => {
     ).rejects.toThrow(/VND/)
   })
 
+  it("records a signed callback and authorizes from it without querydr", async () => {
+    const p = provider()
+    const data = await initiated(p)
+    const calls = mockFetch(() => ({ vnp_ResponseCode: "99", vnp_Message: "Unexpected error" }))
+
+    // Forged callback: ignored, data kept, raw query never stored.
+    const forged = await p.updatePayment({ amount: 250000, currency_code: "vnd",
+      data: { ...data, vnpay_callback: { ...signedCallback(), vnp_ResponseCode: "00", vnp_SecureHash: "00" } } } as any)
+    expect((forged.data as VnpaySessionData).vnpay?.callback).toBeUndefined()
+    expect((forged.data as any).vnpay_callback).toBeUndefined()
+    expect((forged.data as VnpaySessionData).session_id).toBe(SESSION)
+
+    // Signed callback for another txn ref: ignored.
+    const other = await p.updatePayment({ amount: 250000, currency_code: "vnd",
+      data: { ...data, vnpay_callback: signedCallback({ vnp_TxnRef: `${ULID}2` }) } } as any)
+    expect((other.data as VnpaySessionData).vnpay?.callback).toBeUndefined()
+
+    const rec = await p.updatePayment({ amount: 250000, currency_code: "vnd",
+      data: { ...data, vnpay_callback: signedCallback() } } as any)
+    const stored = rec.data as VnpaySessionData
+    expect(stored.vnpay?.callback).toMatchObject({ response_code: "00", transaction_status: "00", amount: 250000, transaction_no: "14512345" })
+    expect(stored.vnpay?.transaction_no).toBe("14512345")
+
+    const auth = await p.authorizePayment({ data: stored } as any)
+    expect(auth.status).toBe(PaymentSessionStatus.CAPTURED)
+    expect(calls).toHaveLength(0)
+
+    // Signed but for a different amount -> error.
+    const wrong = await p.updatePayment({ amount: 250000, currency_code: "vnd",
+      data: { ...data, vnpay_callback: signedCallback({ vnp_Amount: "100" }) } } as any)
+    expect((await p.authorizePayment({ data: wrong.data } as any)).status).toBe(PaymentSessionStatus.ERROR)
+  })
+
   it("gets a new txn ref when the amount changes", async () => {
     const p = provider()
     const data = await initiated(p)
-    expect((await p.updatePayment({ amount: 250000, currency_code: "vnd", data } as any)).data).toEqual({})
+    // Medusa stores the returned data as the whole session data: unchanged amount keeps it.
+    expect((await p.updatePayment({ amount: 250000, currency_code: "vnd", data } as any)).data).toEqual(data)
     const out = await p.updatePayment({ amount: 300000, currency_code: "vnd", data } as any)
     expect((out.data as VnpaySessionData).vnpay).toMatchObject({ txn_ref: `${ULID}2`, amount: 300000, attempt: 2 })
   })
@@ -211,6 +245,14 @@ describe("provider", () => {
 
     mockFetch(() => ({ ...signedApiResponse(base), vnp_TransactionStatus: "00", vnp_Amount: "99900" }))
     await expect(p.authorizePayment({ data } as any)).rejects.toThrow(/checksum/)
+
+    // Unsigned "00" is never trusted; unsigned errors are reported as errors.
+    mockFetch(() => ({ ...base }))
+    await expect(p.authorizePayment({ data } as any)).rejects.toThrow(/checksum/)
+    mockFetch(() => ({ vnp_ResponseCode: "99", vnp_Message: "Unexpected error" }))
+    await expect(p.authorizePayment({ data } as any)).rejects.toThrow(/code 99 Unexpected error/)
+    mockFetch(() => ({ vnp_ResponseCode: "91", vnp_Message: "Not found" }))
+    expect((await p.authorizePayment({ data } as any)).status).toBe(PaymentSessionStatus.PENDING)
   })
 
   it("refunds through the API: full -> 02, partial -> 03, never above the paid amount", async () => {
