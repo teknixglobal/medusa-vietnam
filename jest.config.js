@@ -9,5 +9,6 @@ module.exports = {
   testMatch: ["<rootDir>/packages/*/src/**/__tests__/**/*.unit.spec.[jt]s"],
   moduleNameMapper: {
     "^@teknixglobal/medusa-vietnam-core$": "<rootDir>/packages/core/src",
+    "^@teknixglobal/medusa-vietnam-shipping-core$": "<rootDir>/packages/shipping-core/src",
   },
 }

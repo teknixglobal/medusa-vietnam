@@ -17,9 +17,11 @@ import {
   normalizeVnPhone,
   quoteCacheKey,
   quoteWithFallback,
+  readCodAmount,
   readVnAddress,
   toShippingAmount,
   verifySharedSecretHeader,
+  VN_COD_METADATA_KEY,
   VN_UNITS_DATASET,
   WebhookDeduper,
   type CarrierCapabilities,
@@ -248,5 +250,15 @@ describe("webhook", () => {
     expect(await dedupe.seen("GHN1:switch_status:t1")).toBe(false)
     await dedupe.remember("GHN1:switch_status:t1")
     expect(await dedupe.seen("GHN1:switch_status:t1")).toBe(true)
+  })
+})
+
+describe("cod", () => {
+  it("reads the COD amount from order metadata", () => {
+    expect(readCodAmount({ metadata: { [VN_COD_METADATA_KEY]: 450000 } })).toBe(450000)
+    expect(readCodAmount({ metadata: { [VN_COD_METADATA_KEY]: "120000.4" } })).toBe(120000)
+    expect(readCodAmount({ metadata: { [VN_COD_METADATA_KEY]: -5 } })).toBe(0)
+    expect(readCodAmount({ metadata: null })).toBe(0)
+    expect(readCodAmount(undefined)).toBe(0)
   })
 })

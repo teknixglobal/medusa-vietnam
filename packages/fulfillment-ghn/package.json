@@ -1,0 +1,72 @@
+{
+  "name": "@teknixglobal/medusa-fulfillment-ghn",
+  "version": "0.1.0",
+  "description": "GHN (Giao Hàng Nhanh) fulfillment provider for Medusa v2 (plugin): calculated rates on the 2025 two-tier address map, create/cancel/return shipments, labels, status webhook.",
+  "author": "Teknix (https://github.com/teknixglobal)",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "directory": "packages/fulfillment-ghn"
+  },
+  "files": [
+    ".medusa/server",
+    "README.md"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    "./.medusa/server/src/modules/*": "./.medusa/server/src/modules/*/index.js",
+    "./providers/*": "./.medusa/server/src/providers/*/index.js",
+    "./*": "./.medusa/server/src/*.js"
+  },
+  "keywords": [
+    "medusa",
+    "medusa-plugin",
+    "medusa-plugin-fulfillment",
+    "ghn",
+    "giao-hang-nhanh",
+    "medusa-v2",
+    "vietnam",
+    "shipping"
+  ],
+  "scripts": {
+    "build": "medusa plugin:build",
+    "typecheck": "tsc --noEmit",
+    "publish:local": "yalc publish --no-scripts",
+    "data:ghn-map": "node scripts/build-ghn-map.mjs"
+  },
+  "peerDependencies": {
+    "@medusajs/framework": "~2.22.3",
+    "@medusajs/medusa": "~2.22.3"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "dependencies": {
+    "@teknixglobal/medusa-vietnam-core": "workspace:^",
+    "@teknixglobal/medusa-vietnam-shipping-core": "workspace:^"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "devDependencies": {
+    "@medusajs/admin-sdk": "2.22.3",
+    "@medusajs/admin-shared": "2.22.3",
+    "@medusajs/cli": "2.22.3",
+    "@medusajs/framework": "2.22.3",
+    "@medusajs/icons": "2.22.3",
+    "@medusajs/medusa": "2.22.3",
+    "@medusajs/test-utils": "2.22.3",
+    "@medusajs/ui": "4.2.9",
+    "@swc/core": "^1.7.28",
+    "@types/react": "^18.3.2",
+    "@types/react-dom": "^18.2.25",
+    "prop-types": "^15.8.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.6.2",
+    "vite": "^7.3.7",
+    "yalc": "^1.0.0-pre.53"
+  }
+}
