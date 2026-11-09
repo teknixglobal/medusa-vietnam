@@ -10,7 +10,7 @@ Webhook URLs:
 | Gateway | URL |
 |---|---|
 | SePay | `https://<backend-host>/hooks/payment/sepay_sepay` |
-| (next) VNPay | `https://<backend-host>/hooks/vnpay/ipn` (GET, own route) |
+| VNPay | `https://<backend-host>/hooks/vnpay/ipn` (GET, plugin route; the customer's browser also uses `/hooks/vnpay/return`) |
 
 ## 2. Access bypass for `/hooks` only
 
@@ -33,6 +33,10 @@ my.sepay.vn > Payment Gateway (Sandbox) > Configuration > IPN:
 
 - IPN URL: `https://<backend-host>/hooks/payment/sepay_sepay`
 - Auth type: `SECRET_KEY` (optional). Copy the key into `SEPAY_IPN_SECRET_KEY` in the backend `.env` and restart. Without it the plugin still verifies every IPN through the order API.
+
+## 3b. VNPay
+
+The sandbox credentials email asks the merchant to send the IPN URL to VNPay: reply with `https://<backend-host>/hooks/vnpay/ipn` (if the merchant admin at sandbox.vnpayment.vn/merchantv2 has an IPN setting, set it there instead). No IPN secret: IPNs are signed with the hash secret. The return URL (`<MEDUSA_BACKEND_URL>/hooks/vnpay/return`) is sent with each payment, nothing to register.
 
 ## 4. Without a public URL
 
