@@ -27,6 +27,7 @@ jobs:
       - run: npm install -g npm@11
       - run: pnpm install --frozen-lockfile
       - run: pnpm test
+      - run: pnpm build # typecheck reads core's built types
       - run: pnpm typecheck
       # Off until the packages exist on npm and have a trusted publisher:
       # GitHub > Settings > Secrets and variables > Actions > Variables: RELEASE_ENABLED=true
