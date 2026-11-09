@@ -315,6 +315,8 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
       return {
         data: {
           ghn_order_code: shipment.carrier_order_code,
+          // Lets the status webhook find the order without a cross-module query.
+          order_id: order?.id,
           ghn_env: this.adapter_.client.env,
           ghn_fee: shipment.fee,
           ghn_expected_delivery: shipment.eta?.to,

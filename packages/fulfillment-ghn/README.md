@@ -2,7 +2,7 @@
 
 GHN (Giao Hàng Nhanh) fulfillment provider for Medusa v2 (2.22.x), packaged as a plugin. Built on [`@teknixglobal/medusa-vietnam-shipping-core`](../shipping-core) and the 2025 two-tier address map (34 provinces, no district).
 
-Status: 0.1.0, not published. Provider done and checked against GHN staging; status webhook, COD subscriber and storefront address form come next.
+Status: 0.1.0, not published. Provider checked against GHN staging; status webhook, COD subscriber and sync job unit-tested, not yet run end to end (needs a public URL). Storefront address form comes next.
 
 ## What it does
 
@@ -16,6 +16,19 @@ Status: 0.1.0, not published. Provider done and checked against GHN staging; sta
 | `createReturnFulfillment` | Recorded only; book the pickup in the GHN portal |
 
 Options (`getFulfillmentOptions`): `ghn-standard` (service_type_id 2, < 20 kg), `ghn-heavy` (5), `ghn-return`.
+
+## Status updates and COD
+
+| Piece | What it does |
+|---|---|
+| `POST /hooks/ghn` | GHN status webhook. Checks the custom header (`webhook_secret`, header `X-Teknix-Webhook-Secret` unless `webhook_header` is set) and the ShopID, skips retries already handled, then runs `syncGhnShipmentWorkflow`. Answers 503 on temporary errors so GHN retries |
+| `syncGhnShipmentWorkflow` | Re-reads the order from GHN (payloads are unsigned, never trusted), stores `ghn_status` / `shipment_status` on `fulfillment.data`, then runs Medusa's `createOrderShipmentWorkflow` (picked up) and `markOrderFulfillmentAsDeliveredWorkflow` (delivered). Never moves back from a final status; lost/returned/failed set `shipment_flag` and log a warning |
+| Job `ghn-sync-shipments` (every 30 min) | Same workflow for up to 50 open GHN fulfillments: covers missed webhooks |
+| Subscriber `order.placed` | Order paid with `pp_cod_*`: writes the total to `order.metadata.vn_shipping_cod_amount`, which the provider sends as GHN `cod_amount` |
+
+In the GHN portal (developer.ghn.dev for staging, developer.ghn.vn for production): Webhook configuration > Order: URL `https://<backend>/hooks/ghn`, custom header `X-Teknix-Webhook-Secret: <webhook_secret>`. Changes take ~15 minutes. Behind Cloudflare Access, open the `hooks` path (see `docs/IPN-TUNNEL.md`).
+
+Webhook de-duplication is in memory: with several servers, handling is still safe (the workflow is idempotent), only repeated.
 
 ## Install
 
