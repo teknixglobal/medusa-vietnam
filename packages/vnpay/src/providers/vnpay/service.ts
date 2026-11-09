@@ -1,6 +1,5 @@
 import { isIP } from "net"
 import {
-  AbstractPaymentProvider,
   MedusaError,
   PaymentActions,
   PaymentSessionStatus,
@@ -24,8 +23,6 @@ import type {
   RefundPaymentOutput,
   RetrievePaymentInput,
   RetrievePaymentOutput,
-  UpdatePaymentInput,
-  UpdatePaymentOutput,
   WebhookActionResult,
 } from "@medusajs/framework/types"
 import {
@@ -33,9 +30,12 @@ import {
   parseOrigins,
   pickLocale,
   resolveReturnUrl,
+  TeknixPaymentProviderBase,
   toVndInteger,
   type Locale,
   type NextAction,
+  type PaymentSessionDataUpdate,
+  type SessionUpdateInput,
 } from "@teknixglobal/medusa-vietnam-core"
 import {
   amountFromVnp,
@@ -170,7 +170,7 @@ export function mapQueryDr(result: QueryDrResult): PaymentSessionStatus {
   }
 }
 
-class VnpayProviderService extends AbstractPaymentProvider<VnpayOptions> {
+class VnpayProviderService extends TeknixPaymentProviderBase<VnpayOptions> {
   static identifier = "vnpay"
 
   protected readonly logger_: Logger
@@ -296,28 +296,37 @@ class VnpayProviderService extends AbstractPaymentProvider<VnpayOptions> {
    * Also records a signed callback (`data.vnpay_callback`, from the plugin routes) after
    * checking its signature here, so the hash secret never leaves the provider.
    */
-  async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
-    const { vnpay_callback: rawCallback, ...data } = (input.data ?? {}) as VnpaySessionData
+  // Raw return/IPN query handed in through updatePaymentSession: read, never stored.
+  protected readonly transientDataKeys = ["vnpay_callback"] as const
+
+  // updatePayment lives in TeknixPaymentProviderBase (keeps session data, F-001).
+  protected updateSessionData(input: SessionUpdateInput, transient: Record<string, unknown>): PaymentSessionDataUpdate {
+    const data = input.data as VnpaySessionData
+    const rawCallback = transient.vnpay_callback as VnpaySessionData["vnpay_callback"]
     if (rawCallback && data.vnpay) {
       const callback = this.verifyCallbackFor(rawCallback, data.vnpay.txn_ref)
-      if (callback) {
-        data.vnpay = {
-          ...data.vnpay,
-          callback,
-          transaction_no: callback.transaction_no || data.vnpay.transaction_no,
-          bank_code: callback.bank_code || data.vnpay.bank_code,
-          pay_date: callback.pay_date || data.vnpay.pay_date,
-        }
+      if (!callback) {
+        return {}
       }
-      return { data }
+      return {
+        data: {
+          vnpay: {
+            ...data.vnpay,
+            callback,
+            transaction_no: callback.transaction_no || data.vnpay.transaction_no,
+            bank_code: callback.bank_code || data.vnpay.bank_code,
+            pay_date: callback.pay_date || data.vnpay.pay_date,
+          },
+        },
+      }
     }
     if (!data.session_id || !data.vnpay || !data.return_url) {
-      return { data }
+      return {}
     }
     assertVnd(input.currency_code)
     const amount = toVndInteger(input.amount)
     if (amount === data.vnpay.amount) {
-      return { data }
+      return {}
     }
     // vnp_TxnRef must be unique: a new amount gets a new reference.
     const session = this.buildSession(

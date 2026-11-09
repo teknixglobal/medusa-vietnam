@@ -1,5 +1,4 @@
 import {
-  AbstractPaymentProvider,
   MedusaError,
   PaymentActions,
   PaymentSessionStatus,
@@ -23,8 +22,6 @@ import type {
   RefundPaymentOutput,
   RetrievePaymentInput,
   RetrievePaymentOutput,
-  UpdatePaymentInput,
-  UpdatePaymentOutput,
   WebhookActionResult,
 } from "@medusajs/framework/types"
 import {
@@ -33,8 +30,11 @@ import {
   pickLocale,
   resolveReturnUrl,
   safeEqual,
+  TeknixPaymentProviderBase,
   toVndInteger,
   withParams,
+  type PaymentSessionDataUpdate,
+  type SessionUpdateInput,
   type Locale,
   type NextAction,
 } from "@teknixglobal/medusa-vietnam-core"
@@ -98,7 +98,7 @@ export function mapSepayStatus(order: SepayOrder | null): PaymentSessionStatus {
   }
 }
 
-class SepayProviderService extends AbstractPaymentProvider<SepayOptions> {
+class SepayProviderService extends TeknixPaymentProviderBase<SepayOptions> {
   static identifier = "sepay"
 
   protected readonly logger_: Logger
@@ -179,17 +179,17 @@ class SepayProviderService extends AbstractPaymentProvider<SepayOptions> {
     }
   }
 
-  async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
-    const data = (input.data ?? {}) as SepaySessionData
-    // Medusa stores the returned data as the whole session data: never return {} here.
+  // updatePayment lives in TeknixPaymentProviderBase (keeps session data, F-001).
+  protected updateSessionData(input: SessionUpdateInput): PaymentSessionDataUpdate {
+    const data = input.data as SepaySessionData
     if (!data.session_id || !data.sepay || !data.return_url) {
       // Caller did not pass the stored session data: nothing to rebuild.
-      return { data }
+      return {}
     }
     assertVnd(input.currency_code)
     const amount = toVndInteger(input.amount)
     if (amount === data.sepay.amount) {
-      return { data }
+      return {}
     }
     // New amount -> new invoice number, SePay invoices are unique.
     const session = this.buildSession(

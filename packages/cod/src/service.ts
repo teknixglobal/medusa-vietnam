@@ -1,4 +1,4 @@
-import { AbstractPaymentProvider, MedusaError, PaymentActions, PaymentSessionStatus } from "@medusajs/framework/utils"
+import { MedusaError, PaymentActions, PaymentSessionStatus } from "@medusajs/framework/utils"
 import type {
   AuthorizePaymentInput,
   AuthorizePaymentOutput,
@@ -16,11 +16,15 @@ import type {
   RefundPaymentOutput,
   RetrievePaymentInput,
   RetrievePaymentOutput,
-  UpdatePaymentInput,
-  UpdatePaymentOutput,
   WebhookActionResult,
 } from "@medusajs/framework/types"
-import { assertVnd, toVndInteger } from "@teknixglobal/medusa-vietnam-core"
+import {
+  assertVnd,
+  TeknixPaymentProviderBase,
+  toVndInteger,
+  type PaymentSessionDataUpdate,
+  type SessionUpdateInput,
+} from "@teknixglobal/medusa-vietnam-core"
 
 export type CodOptions = {
   /** Reject COD above this amount (VND). Empty: no limit. */
@@ -31,7 +35,7 @@ export type CodOptions = {
  * Cash on delivery. The order is placed with an authorized payment;
  * capture it in Admin when the courier has collected the cash.
  */
-class CodProviderService extends AbstractPaymentProvider<CodOptions> {
+class CodProviderService extends TeknixPaymentProviderBase<CodOptions> {
   static identifier = "cod"
 
   protected readonly options_: CodOptions
@@ -61,10 +65,10 @@ class CodProviderService extends AbstractPaymentProvider<CodOptions> {
     }
   }
 
-  async updatePayment(input: UpdatePaymentInput): Promise<UpdatePaymentOutput> {
+  // updatePayment lives in TeknixPaymentProviderBase (keeps session data, F-001).
+  protected updateSessionData(input: SessionUpdateInput): PaymentSessionDataUpdate {
     const amount = this.checkAmount(input.currency_code, input.amount)
-    // Medusa stores the returned data as the whole session data: keep what is there.
-    return { data: { ...(input.data ?? {}), cod: { amount } } }
+    return { data: { cod: { amount } } }
   }
 
   async authorizePayment(input: AuthorizePaymentInput): Promise<AuthorizePaymentOutput> {

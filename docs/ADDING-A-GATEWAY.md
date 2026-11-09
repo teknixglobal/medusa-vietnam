@@ -28,6 +28,7 @@ cp -r packages/cod packages/<code>       # then rename
 - `package.json`: name `@teknixglobal/medusa-payment-<code>`, dependency `@teknixglobal/medusa-vietnam-core: workspace:^`, peer `@medusajs/framework: ~2.22.3`. Gateway SDKs go in this package only, never in core.
 - `src/index.ts`: `export default ModuleProvider(Modules.PAYMENT, { services: [Service] })`.
 - `static identifier = "<code>"` -> provider id `pp_<code>_<id>`.
+- The service extends `TeknixPaymentProviderBase` from core (not `AbstractPaymentProvider` directly): it carries the Medusa fixes in [FIXES.md](../FIXES.md).
 - Add labels in `packages/core/src/i18n.ts` (`METHOD_INFO`, vi + en, `flow`).
 
 ## 2. Provider methods: what each one must do
@@ -36,7 +37,7 @@ cp -r packages/cod packages/<code>       # then rename
 |---|---|
 | `validateOptions` | Throw `INVALID_DATA` for missing credentials so a bad config fails at boot |
 | `initiatePayment` | `assertVnd`, `toVndInteger`, take `data.session_id` as the gateway reference, check `data.return_url` with `resolveReturnUrl`, return `data.next_action` (see CONTRACT.md 4) and status `pending`. Store the signed amount in `data.<code>.amount` |
-| `updatePayment` | Re-sign only if the caller passed the stored data and the amount changed; otherwise return the data unchanged. **Never `{ data: {} }`**: Medusa stores the returned data as the whole session data |
+| `updateSessionData` | Do not override `updatePayment`: the base class owns it and merges what you return over the stored data (F-001). Return only what changes: re-sign only if the caller passed the stored data and the amount changed, otherwise return `{}`. Input-only keys (raw callbacks) go in `transientDataKeys` so they are never stored |
 | `authorizePayment` | **Ask the gateway API**. Return `captured` for gateways that capture on payment, `authorized` for real auth/capture flows, `pending` when unpaid (Medusa then refuses to complete the cart), `error` when the paid amount differs from the signed amount |
 | `capturePayment` | No-op for capture-on-payment gateways |
 | `refundPayment` | Call the refund API, or record a manual refund in `data` and log a warning. Must support partial amounts (Mercur refunds per seller) |
