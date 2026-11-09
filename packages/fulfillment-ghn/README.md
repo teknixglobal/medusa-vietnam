@@ -17,6 +17,13 @@ Status: 0.1.0, not published. Provider checked against GHN staging; status webho
 
 Options (`getFulfillmentOptions`): `ghn-standard` (service_type_id 2, < 20 kg), `ghn-heavy` (5), `ghn-return`.
 
+## Admin
+
+- Widget **Giao hàng GHN** on the order page (side column, movable in the Editor view): GHN order code (link to donhang.ghn.vn), status in Vietnamese, flag + GHN reason when something needs attention, COD, GHN fee, expected delivery, COD transfer date, last sync; buttons **In nhãn** (A5, 80×80, 52×70) and **Cập nhật** (re-read now).
+- `GET /admin/ghn/fulfillments/:id/label?format=A5|80x80|52x70` → `{ url }` (fresh GHN label page, ~30 min).
+- `POST /admin/ghn/fulfillments/:id/sync` → runs the sync workflow now.
+- The webhook's `Reason` / `ReasonCode` are stored as `ghn_reason` / `ghn_reason_code` only when GHN confirms the same status (payloads are unsigned).
+
 ## Status updates and COD
 
 | Piece | What it does |

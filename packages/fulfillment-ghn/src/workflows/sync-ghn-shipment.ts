@@ -3,7 +3,11 @@ import { createWorkflow, transform, when, WorkflowResponse } from "@medusajs/fra
 import { planGhnSync } from "./plan"
 import { fetchGhnShipmentStep, findGhnFulfillmentStep, updateGhnFulfillmentDataStep } from "./steps/ghn-sync"
 
-export type SyncGhnShipmentInput = { order_code: string }
+export type SyncGhnShipmentInput = {
+  order_code: string
+  /** From the webhook, display only (kept when GHN confirms the same status). */
+  reported?: { reason?: string; reason_code?: string; raw_status?: string }
+}
 
 /**
  * Brings one GHN order into Medusa: re-reads the status from GHN, stores it on
@@ -13,10 +17,10 @@ export type SyncGhnShipmentInput = { order_code: string }
 export const syncGhnShipmentWorkflow = createWorkflow(
   "sync-ghn-shipment",
   function (input: SyncGhnShipmentInput) {
-    const fetched = fetchGhnShipmentStep(input)
+    const fetched = fetchGhnShipmentStep({ order_code: input.order_code })
     const fulfillment = findGhnFulfillmentStep(fetched)
-    const plan = transform({ fetched, fulfillment }, ({ fetched, fulfillment }) =>
-      planGhnSync(fetched.snapshot, fulfillment, new Date().toISOString())
+    const plan = transform({ fetched, fulfillment, input }, ({ fetched, fulfillment, input }) =>
+      planGhnSync(fetched.snapshot, fulfillment, new Date().toISOString(), input.reported)
     )
 
     when("ghn-sync-update", plan, (p) => !p.skip).then(function () {

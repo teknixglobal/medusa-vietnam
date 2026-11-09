@@ -110,6 +110,9 @@ export type WebhookEvent = {
   dedupe_key: string
   /** The carrier account the event claims to come from (checked against config). */
   account_id?: string
+  /** Carrier's reason text/code for failures (delivery failed, pickup failed…), for display only. */
+  reason?: string
+  reason_code?: string
 }
 
 export type CarrierCapabilities = {

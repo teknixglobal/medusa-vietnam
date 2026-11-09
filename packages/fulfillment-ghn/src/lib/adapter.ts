@@ -201,6 +201,8 @@ export class GhnAdapter implements CarrierAdapter {
         occurred_at: time,
         dedupe_key: `ghn:${orderCode}:${type ?? ""}:${time}`,
         account_id: b.ShopID === undefined ? undefined : String(b.ShopID),
+        reason: typeof b.Reason === "string" && b.Reason ? b.Reason : undefined,
+        reason_code: typeof b.ReasonCode === "string" && b.ReasonCode ? b.ReasonCode : undefined,
       },
     ]
   }

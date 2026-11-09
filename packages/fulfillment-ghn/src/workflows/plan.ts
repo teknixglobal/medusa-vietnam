@@ -27,7 +27,8 @@ export type GhnSyncPlan = {
 export function planGhnSync(
   snapshot: ShipmentSnapshot,
   fulfillment: GhnFulfillmentRef | null,
-  now: string
+  now: string,
+  reported?: { reason?: string; reason_code?: string; raw_status?: string }
 ): GhnSyncPlan {
   const none = { ship: false, deliver: false, flag: false, items: [] }
   if (!fulfillment) {
@@ -57,6 +58,14 @@ export function planGhnSync(
   }
   if (snapshot.cod_transfer_date !== undefined) {
     data.ghn_cod_transfer_date = snapshot.cod_transfer_date
+  }
+  // The webhook's reason is unsigned: shown to staff only when GHN confirms the same status.
+  if (reported?.reason && reported.raw_status === snapshot.raw_status) {
+    data.ghn_reason = reported.reason
+    data.ghn_reason_code = reported.reason_code
+  } else if (statusChanged) {
+    delete data.ghn_reason
+    delete data.ghn_reason_code
   }
   const flag = statusChanged && action === "flag"
   if (flag) {

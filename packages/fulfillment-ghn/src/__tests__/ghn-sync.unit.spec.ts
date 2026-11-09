@@ -125,3 +125,14 @@ describe("store vn-address routes", () => {
     await expect(wards({ params: { code: "99" } } as any, res())).rejects.toThrow(/not found/)
   })
 })
+
+describe("planGhnSync reasons", () => {
+  const base = { id: "ful_1", order_id: "order_1", data: { ghn_order_code: "X", shipment_status: "out_for_delivery" }, items: [], shipped_at: NOW }
+  it("keeps the webhook reason only when GHN confirms the same status", () => {
+    const s = { carrier_order_code: "X", reference: "ful_1", raw_status: "delivery_fail", status: "delivery_failed" as const }
+    const confirmed = planGhnSync(s, base as any, NOW, { reason: "Khách không nghe máy", reason_code: "GHN-DFC1A4", raw_status: "delivery_fail" })
+    expect(confirmed.data).toMatchObject({ ghn_reason: "Khách không nghe máy", ghn_reason_code: "GHN-DFC1A4", shipment_flag: "delivery_failed" })
+    const forged = planGhnSync(s, base as any, NOW, { reason: "x", raw_status: "delivered" })
+    expect(forged.data?.ghn_reason).toBeUndefined()
+  })
+})

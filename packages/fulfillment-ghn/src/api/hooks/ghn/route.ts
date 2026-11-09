@@ -49,7 +49,10 @@ export const POST = async (req: MedusaRequest, res: MedusaResponse) => {
     }
     try {
       const { result } = await syncGhnShipmentWorkflow(req.scope).run({
-        input: { order_code: event.carrier_order_code },
+        input: {
+          order_code: event.carrier_order_code,
+          reported: { reason: event.reason, reason_code: event.reason_code, raw_status: event.raw_status },
+        },
       })
       if (result.skip && result.reason !== "no change") {
         logger.info(`GHN webhook ${event.carrier_order_code}: ${result.reason}`)
