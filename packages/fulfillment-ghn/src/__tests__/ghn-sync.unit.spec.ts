@@ -102,3 +102,26 @@ describe("ghnRuntimeFrom", () => {
     expect(ghnRuntimeFrom(container(undefined))).toBeNull()
   })
 })
+
+describe("store vn-address routes", () => {
+  const { GET: provinces } = require("../api/store/vn-address/provinces/route")
+  const { GET: wards } = require("../api/store/vn-address/provinces/[code]/wards/route")
+  const res = () => {
+    const r: any = { headers: {}, body: undefined }
+    r.setHeader = (k: string, v: string) => (r.headers[k] = v)
+    r.json = (b: unknown) => (r.body = b)
+    return r
+  }
+
+  it("lists provinces and wards, 404 for unknown provinces", async () => {
+    const r1 = res()
+    await provinces({} as any, r1)
+    expect(r1.body.provinces).toHaveLength(34)
+    expect(r1.body.provinces[0]).toEqual({ code: "01", name: "Hà Nội", full_name: "Thành phố Hà Nội" })
+    expect(r1.headers["Cache-Control"]).toContain("max-age=86400")
+    const r2 = res()
+    await wards({ params: { code: "01" } } as any, r2)
+    expect(r2.body.wards.find((w: any) => w.code === "00004")).toEqual({ code: "00004", name: "Ba Đình", full_name: "Phường Ba Đình", postal_code: "11120" })
+    await expect(wards({ params: { code: "99" } } as any, res())).rejects.toThrow(/not found/)
+  })
+})

@@ -26,6 +26,13 @@ Options (`getFulfillmentOptions`): `ghn-standard` (service_type_id 2, < 20 kg), 
 | Job `ghn-sync-shipments` (every 30 min) | Same workflow for up to 50 open GHN fulfillments: covers missed webhooks |
 | Subscriber `order.placed` | Order paid with `pp_cod_*`: writes the total to `order.metadata.vn_shipping_cod_amount`, which the provider sends as GHN `cod_amount` |
 
+Address data for storefronts (public store routes, publishable key required as for any `/store` route):
+
+- `GET /store/vn-address/provinces` → `{ provinces: [{ code, name, full_name }], dataset }`
+- `GET /store/vn-address/provinces/:code/wards` → `{ wards: [{ code, name, full_name, postal_code }] }`
+
+The storefront saves the choice as `metadata.vn_address = { scheme: "2025", province_code, ward_code }` and the full names in `province` / `city` (see YaahSport `vn-address-fields`).
+
 In the GHN portal (developer.ghn.dev for staging, developer.ghn.vn for production): Webhook configuration > Order: URL `https://<backend>/hooks/ghn`, custom header `X-Teknix-Webhook-Secret: <webhook_secret>`. Changes take ~15 minutes. Behind Cloudflare Access, open the `hooks` path (see `docs/IPN-TUNNEL.md`).
 
 Webhook de-duplication is in memory: with several servers, handling is still safe (the workflow is idempotent), only repeated.
