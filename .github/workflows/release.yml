@@ -1,0 +1,39 @@
+# Release with Changesets + npm trusted publishing (OIDC, no npm token stored in GitHub).
+# 1. A PR adds a changeset (`pnpm changeset`).
+# 2. On main, this workflow opens/updates the "Version Packages" PR.
+# 3. Merging that PR runs it again: tests, build, then publishes the new versions.
+# Setup once per package on npmjs.com: Settings > Trusted Publisher > GitHub Actions,
+# repository teknixglobal/medusa-vietnam, workflow file release.yml (docs/RELEASING.md).
+name: release
+on:
+  push:
+    branches: [main]
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+permissions:
+  contents: write # version commits, tags, GitHub releases
+  pull-requests: write # "Version Packages" PR
+  id-token: write # npm trusted publishing
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: pnpm/action-setup@v6.1.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 22.23.4
+          cache: pnpm
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - run: npm install -g npm@11
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test
+      - run: pnpm typecheck
+      # Off until the packages exist on npm and have a trusted publisher:
+      # GitHub > Settings > Secrets and variables > Actions > Variables: RELEASE_ENABLED=true
+      - if: vars.RELEASE_ENABLED == 'true'
+        uses: changesets/action@v2.1.2
+        with:
+          version: pnpm run version
+          publish: pnpm run release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

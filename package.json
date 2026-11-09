@@ -10,7 +10,8 @@
     "publish:local": "pnpm -r --workspace-concurrency=1 publish:local",
     "changeset": "changeset",
     "version": "changeset version",
-    "release": "pnpm build && changeset publish"
+    "release": "pnpm build && node scripts/publish.mjs",
+    "release:dry": "pnpm build && node scripts/publish.mjs --dry-run"
   },
   "devDependencies": {
     "@changesets/cli": "3.0.3",

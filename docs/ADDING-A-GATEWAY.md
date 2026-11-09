@@ -63,10 +63,10 @@ The return URL lands on `/api/payment-return?provider=<code>&result=success|erro
 ## 6. Release
 
 ```bash
-pnpm changeset          # pick the package, minor for a new gateway
-pnpm version && git commit -am "release"
-pnpm release            # build + npm publish (needs npm login to the teknixglobal org)
+pnpm changeset          # pick the package, minor for a new gateway; commit the file in your PR
 ```
+
+GitHub Actions does the rest (see docs/RELEASING.md): merging to main opens a "Version Packages" PR; merging that PR publishes to npm through trusted publishing.
 
 ## Lessons from SePay
 
