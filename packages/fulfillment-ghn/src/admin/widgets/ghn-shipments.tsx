@@ -116,6 +116,11 @@ function Shipment({ fulfillment, orderId }: { fulfillment: GhnFulfillment; order
         <Row label="Thu hộ (COD)">
           <Text size="small" leading="compact">{vnd(data.ghn_cod_amount)}</Text>
         </Row>
+        {typeof data.ghn_insurance_value === "number" && data.ghn_insurance_value > 0 && (
+          <Row label="Khai giá (bảo hiểm)">
+            <Text size="small" leading="compact">{vnd(data.ghn_insurance_value)}</Text>
+          </Row>
+        )}
         <Row label="Phí GHN">
           <Text size="small" leading="compact">{vnd(data.ghn_fee)}</Text>
         </Row>
@@ -171,7 +176,7 @@ const GhnShipmentsWidget = ({ data: order }: DetailWidgetProps<HttpTypes.AdminOr
     queryFn: () =>
       sdk.admin.order.retrieve(order.id, {
         fields:
-          "id,fulfillments.id,fulfillments.provider_id,fulfillments.data,fulfillments.canceled_at,fulfillments.shipped_at,fulfillments.delivered_at,fulfillments.created_at",
+          "id,metadata,fulfillments.id,fulfillments.provider_id,fulfillments.data,fulfillments.canceled_at,fulfillments.shipped_at,fulfillments.delivered_at,fulfillments.created_at",
       }),
   })
   const shipments = ((data?.order?.fulfillments ?? []) as unknown as GhnFulfillment[])
@@ -181,6 +186,9 @@ const GhnShipmentsWidget = ({ data: order }: DetailWidgetProps<HttpTypes.AdminOr
   if (!isLoading && !isError && !shipments.length) {
     return null
   }
+  const codCapture = (data?.order?.metadata as Record<string, unknown> | null | undefined)?.vn_cod_capture as
+    | { status?: string; reason?: string; amount?: number; at?: string }
+    | undefined
 
   return (
     <Container className="divide-y-0 p-0">
@@ -188,6 +196,16 @@ const GhnShipmentsWidget = ({ data: order }: DetailWidgetProps<HttpTypes.AdminOr
         <Text size="small" leading="compact" weight="plus">
           Giao hàng GHN
         </Text>
+        {codCapture?.status === "captured" && (
+          <Text size="xsmall" leading="compact" className="text-ui-fg-subtle">
+            Đã tự ghi nhận thu COD {vnd(codCapture.amount)} lúc {dateTime(codCapture.at)}
+          </Text>
+        )}
+        {(codCapture?.status === "blocked" || codCapture?.status === "failed") && (
+          <Text size="xsmall" leading="compact" className="text-ui-fg-error">
+            Chưa tự thu COD ({codCapture.reason ?? codCapture.status}). Kiểm tra với GHN rồi bấm Capture ở mục thanh toán.
+          </Text>
+        )}
       </div>
       {isLoading && (
         <Text size="small" leading="compact" className="px-6 pb-4 text-ui-fg-subtle">

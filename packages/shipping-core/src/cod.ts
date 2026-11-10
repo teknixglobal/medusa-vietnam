@@ -11,3 +11,18 @@ export function readCodAmount(order: { metadata?: Record<string, unknown> | null
   const n = typeof raw === "string" ? Number(raw) : raw
   return typeof n === "number" && Number.isFinite(n) && n > 0 ? Math.round(n) : 0
 }
+
+/**
+ * Metadata key on a Medusa order recording the automatic COD capture after delivery:
+ * `{ status: "captured" | "blocked" | "failed", reason?, amount?, fulfillment_id, at }`.
+ * "blocked" and "failed" need a person: check the carrier and capture in Admin by hand.
+ */
+export const VN_COD_CAPTURE_METADATA_KEY = "vn_cod_capture" as const
+
+export type VnCodCaptureRecord = {
+  status: "captured" | "blocked" | "failed"
+  reason?: string
+  amount?: number
+  fulfillment_id: string
+  at: string
+}

@@ -26,6 +26,9 @@ import {
 import { GhnAdapter } from "../../lib/adapter"
 import type { GhnEnv, GhnOrderBody } from "../../lib/client"
 
+/** GHN's maximum insurance_value (also enforced by the adapter). */
+export const GHN_INSURANCE_MAX = 5_000_000
+
 export type GhnPickupOption = {
   name: string
   phone: string
@@ -61,6 +64,19 @@ export type GhnProviderOptions = ParcelOptions & {
   webhook_secret?: string
   /** Header name for webhook_secret. Default X-Teknix-Webhook-Secret. */
   webhook_header?: string
+  /**
+   * Declare the goods value (GHN insurance_value, the basis for compensation on loss
+   * or damage) = sum of unit_price x quantity of the shipped items. GHN charges an
+   * insurance fee on it, so quotes include it too. Default false (nothing declared).
+   */
+  declare_value?: boolean
+  /** Cap of the declared value. Default and maximum 5 000 000 (GHN limit). */
+  insurance_max?: number
+  /**
+   * Capture the COD payment when GHN confirms the delivery (status re-read from GHN,
+   * every fulfillment of the order delivered, GHN COD = payment amount). Default false.
+   */
+  capture_cod_on_delivery?: boolean
 }
 
 type InjectedDependencies = { logger: Logger }
@@ -99,6 +115,18 @@ function personName(address: AddressLike | null | undefined): string {
 
 function streetLine(address: AddressLike | null | undefined): string {
   return [address?.address_1, address?.address_2].filter((s) => s && s.trim()).join(", ")
+}
+
+/** BigNumber-safe number: Medusa returns totals as numbers or { numeric }. */
+function toNumber(raw: unknown): number {
+  const v = typeof raw === "object" && raw !== null && "numeric" in raw ? (raw as { numeric: unknown }).numeric : raw
+  const n = Number(v)
+  return Number.isFinite(n) ? n : 0
+}
+
+/** Value of the goods in a parcel (unit_price x quantity), rounded to whole VND. */
+export function goodsValue(items: { unit_price?: unknown; quantity?: unknown }[]): number {
+  return Math.round(items.reduce((sum, i) => sum + Math.max(0, toNumber(i.unit_price)) * Math.max(0, toNumber(i.quantity)), 0))
 }
 
 function toParcelItem(item: {
@@ -146,6 +174,9 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
         throw new MedusaError(MedusaError.Types.INVALID_DATA, "GHN: options.pickup province_code/ward_code are not a valid 2025 pair")
       }
     }
+    if (o.insurance_max !== undefined && !(Number(o.insurance_max) >= 0 && Number(o.insurance_max) <= GHN_INSURANCE_MAX)) {
+      throw new MedusaError(MedusaError.Types.INVALID_DATA, `GHN: options.insurance_max must be 0-${GHN_INSURANCE_MAX}`)
+    }
   }
 
   constructor({ logger }: InjectedDependencies, options: GhnProviderOptions) {
@@ -172,6 +203,14 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
   /** The carrier adapter, for the plugin's webhook route and jobs. */
   get adapter(): GhnAdapter {
     return this.adapter_
+  }
+
+  /** Declared value for GHN insurance, 0 unless options.declare_value. */
+  private declaredValue(items: { unit_price?: unknown; quantity?: unknown }[]): number {
+    if (!this.options_.declare_value) {
+      return 0
+    }
+    return Math.min(goodsValue(items), this.options_.insurance_max ?? GHN_INSURANCE_MAX, GHN_INSURANCE_MAX)
   }
 
   private pickupFrom(location: StockLocationDTO | undefined | null): VnContact | undefined {
@@ -254,6 +293,7 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
       // GHN's fee does not depend on the COD amount (checked on the API), and the
       // payment method is usually unknown while shipping is chosen.
       cod_amount: 0,
+      insurance_value: this.declaredValue((context.items ?? []) as { unit_price?: unknown; quantity?: unknown }[]),
     }
     try {
       const result = await quoteWithFallback(request, (r) => this.adapter_.quote(r), {
@@ -290,7 +330,10 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
     }
     const reference = String(fulfillment.id ?? "")
     const orderItems = new Map(
-      ((order?.items ?? []) as { id: string; variant?: ParcelItemVariant | null }[]).map((i) => [i.id, i])
+      ((order?.items ?? []) as { id: string; unit_price?: unknown; variant?: ParcelItemVariant | null }[]).map((i) => [i.id, i])
+    )
+    const insuranceValue = this.declaredValue(
+      items.map((i) => ({ unit_price: orderItems.get(String(i.line_item_id))?.unit_price, quantity: i.quantity }))
     )
     const parcelItems = items.map((i) =>
       toParcelItem({ quantity: i.quantity, variant: orderItems.get(String(i.line_item_id))?.variant })
@@ -309,6 +352,7 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
         },
         parcel: buildParcel(parcelItems, this.options_),
         cod_amount: codAmount,
+        insurance_value: insuranceValue,
         content: order?.display_id ? `Don hang #${order.display_id}` : undefined,
         items: items.map((i) => ({ name: String(i.title ?? "Hang hoa"), quantity: Number(i.quantity ?? 1) })),
       })
@@ -322,6 +366,7 @@ class GhnFulfillmentService extends AbstractFulfillmentProviderService {
           ghn_expected_delivery: shipment.eta?.to,
           ghn_sort_code: shipment.data?.sort_code,
           ghn_cod_amount: codAmount,
+          ghn_insurance_value: insuranceValue,
           ghn_status: "ready_to_pick",
           shipment_status: "pending",
         },

@@ -1,6 +1,6 @@
 import type { ShipmentSnapshot } from "@teknixglobal/medusa-vietnam-shipping-core"
 import { ghnRuntimeFrom } from "../lib/config"
-import { codAmountForOrder, planGhnSync } from "../workflows/plan"
+import { codAmountForOrder, planCodCapture, planGhnSync } from "../workflows/plan"
 import type { GhnFulfillmentRef } from "../workflows/steps/ghn-sync"
 
 const NOW = "2026-11-09T16:00:00.000Z"
@@ -134,5 +134,56 @@ describe("planGhnSync reasons", () => {
     expect(confirmed.data).toMatchObject({ ghn_reason: "Khách không nghe máy", ghn_reason_code: "GHN-DFC1A4", shipment_flag: "delivery_failed" })
     const forged = planGhnSync(s, base as any, NOW, { reason: "x", raw_status: "delivered" })
     expect(forged.data?.ghn_reason).toBeUndefined()
+  })
+})
+
+describe("planCodCapture", () => {
+  const GHN = "ghn_ghn"
+  const delivered = (extra: Record<string, unknown> = {}) => ({
+    id: "ful_1",
+    provider_id: GHN,
+    delivered_at: NOW,
+    data: { order_id: "order_1", shipment_status: "delivered", ghn_cod_amount: 450000 },
+    ...extra,
+  })
+  const order = (extra: Record<string, unknown> = {}, payment: Record<string, unknown> = {}) => ({
+    id: "order_1",
+    fulfillments: [delivered()],
+    payment_collections: [{ payments: [{ id: "pay_1", provider_id: "pp_cod_cod", amount: 450000, captures: [], ...payment }] }],
+    ...extra,
+  })
+
+  it("captures the remaining COD once GHN reported the delivery", () => {
+    expect(planCodCapture(delivered(), order(), GHN)).toEqual({ action: "capture", payment_id: "pay_1", amount: 450000 })
+    expect(planCodCapture(delivered(), order({}, { amount: { numeric: 450000 } }), GHN)).toMatchObject({ action: "capture" })
+  })
+
+  it("skips other carriers, prepaid orders and captured payments", () => {
+    expect(planCodCapture(delivered({ provider_id: "manual_manual" }), order(), GHN)).toMatchObject({ action: "skip" })
+    expect(planCodCapture(delivered(), order({}, { provider_id: "pp_vnpay_vnpay" }), GHN)).toMatchObject({ action: "skip", reason: "no COD payment" })
+    expect(planCodCapture(delivered(), order({}, { captured_at: NOW }), GHN)).toMatchObject({ action: "skip", reason: "COD already captured" })
+    expect(planCodCapture(delivered(), order({}, { captures: [{ amount: 450000 }] }), GHN)).toMatchObject({ action: "skip" })
+    expect(planCodCapture(delivered(), order({}, { canceled_at: NOW }), GHN)).toMatchObject({ action: "skip" })
+  })
+
+  it("blocks a delivery GHN did not report (manual mark as delivered)", () => {
+    const manual = delivered({ data: { order_id: "order_1", shipment_status: "in_transit", ghn_cod_amount: 450000 } })
+    expect(planCodCapture(manual, order({ fulfillments: [manual] }), GHN)).toMatchObject({ action: "block" })
+  })
+
+  it("waits for every live shipment, ignores cancelled ones", () => {
+    const second = { id: "ful_2", provider_id: GHN, delivered_at: null, data: { ghn_cod_amount: 0 } }
+    expect(planCodCapture(delivered(), order({ fulfillments: [delivered(), second] }), GHN)).toMatchObject({ action: "skip" })
+    const cancelled = { ...second, canceled_at: NOW, data: { ghn_cod_amount: 450000 } }
+    expect(planCodCapture(delivered(), order({ fulfillments: [delivered(), cancelled] }), GHN)).toMatchObject({ action: "capture" })
+  })
+
+  it("blocks when the COD GHN collects differs from the payment", () => {
+    const split = { id: "ful_2", provider_id: GHN, delivered_at: NOW, data: { ghn_cod_amount: 450000 } }
+    expect(planCodCapture(delivered(), order({ fulfillments: [delivered(), split] }), GHN)).toMatchObject({
+      action: "block",
+      reason: "GHN collects 900000 VND, COD payment is 450000 VND",
+    })
+    expect(planCodCapture(delivered(), order({}, { amount: 500000 }), GHN)).toMatchObject({ action: "block" })
   })
 })

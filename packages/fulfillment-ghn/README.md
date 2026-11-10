@@ -32,6 +32,7 @@ Options (`getFulfillmentOptions`): `ghn-standard` (service_type_id 2, < 20 kg), 
 | `syncGhnShipmentWorkflow` | Re-reads the order from GHN (payloads are unsigned, never trusted), stores `ghn_status` / `shipment_status` on `fulfillment.data`, then runs Medusa's `createOrderShipmentWorkflow` (picked up) and `markOrderFulfillmentAsDeliveredWorkflow` (delivered). Never moves back from a final status; lost/returned/failed set `shipment_flag` and log a warning |
 | Job `ghn-sync-shipments` (every 30 min) | Same workflow for up to 50 open GHN fulfillments: covers missed webhooks |
 | Subscriber `order.placed` | Order paid with `pp_cod_*`: writes the total to `order.metadata.vn_shipping_cod_amount`, which the provider sends as GHN `cod_amount` |
+| Subscriber `delivery.created` (option `capture_cod_on_delivery`) | Captures the COD payment when **GHN** reported the delivery (`fulfillment.data.shipment_status = delivered`, written by the sync workflow from a re-read), every live fulfillment of the order is delivered and the GHN COD equals the payment. Otherwise records `order.metadata.vn_cod_capture = { status: "blocked" \| "failed", reason }`, shown in the widget: a person checks GHN and captures in Admin. A manual "mark as delivered" never captures |
 
 Address data for storefronts (public store routes, publishable key required as for any `/store` route):
 
@@ -70,6 +71,10 @@ modules: [{
 ```
 
 Provider id: `ghn_ghn`. Enable it on the stock location, then create a shipping option with `price_type: "calculated"` and option `ghn-standard`.
+
+Declared value (insurance): `declare_value: true` sends GHN `insurance_value` = sum of `unit_price × quantity` of the shipped items (quotes too, since GHN charges an insurance fee on it), capped at `insurance_max` (default and maximum 5 000 000). Stored as `fulfillment.data.ghn_insurance_value`. Default off.
+
+COD capture: `capture_cod_on_delivery: true` (default off), see the table above.
 
 Other options: `payment_type_id` (1 shop pays GHN, default; 2 recipient pays), `required_note` (default `KHONGCHOXEMHANG`), `timeout_ms` (8000), `quote_timeout_ms` (4000), `quote_cache_ttl_seconds` (3600), `weight_unit` (`g`|`kg`, default g), `dimension_unit` (`cm`|`mm`), `default_item_weight_g` (500), `packaging_weight_g` (0).
 
