@@ -185,5 +185,11 @@ describe("planCodCapture", () => {
       reason: "GHN collects 900000 VND, COD payment is 450000 VND",
     })
     expect(planCodCapture(delivered(), order({}, { amount: 500000 }), GHN)).toMatchObject({ action: "block" })
+    const edited = delivered({ data: { order_id: "order_1", shipment_status: "delivered", ghn_cod_amount: 450000, ghn_cod_reported: 300000 } })
+    expect(planCodCapture(edited, order({ fulfillments: [edited] }), GHN)).toMatchObject({ action: "block", reason: expect.stringContaining("GHN reports COD 300000") })
+  })
+
+  it("records the COD GHN reports on every sync", () => {
+    expect(planGhnSync(snap("delivered", "delivered", { cod_amount: 450000 }), ful(), NOW).data).toMatchObject({ ghn_cod_reported: 450000 })
   })
 })

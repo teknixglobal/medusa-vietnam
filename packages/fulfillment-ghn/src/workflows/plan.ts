@@ -59,6 +59,10 @@ export function planGhnSync(
   if (snapshot.cod_transfer_date !== undefined) {
     data.ghn_cod_transfer_date = snapshot.cod_transfer_date
   }
+  // COD as GHN has it now (it can be edited in the GHN portal); checked before any capture.
+  if (typeof snapshot.cod_amount === "number") {
+    data.ghn_cod_reported = snapshot.cod_amount
+  }
   // The webhook's reason is unsigned: shown to staff only when GHN confirms the same status.
   if (reported?.reason && reported.raw_status === snapshot.raw_status) {
     data.ghn_reason = reported.reason
@@ -185,6 +189,12 @@ export function planCodCapture(
   const live = (order.fulfillments ?? []).filter((f) => !f.canceled_at)
   if (live.some((f) => f.id !== delivered.id && !f.delivered_at)) {
     return { action: "skip", reason: "other shipments of the order are not delivered yet" }
+  }
+  const edited = live.find(
+    (f) => typeof f.data?.ghn_cod_reported === "number" && f.data.ghn_cod_reported !== num(f.data?.ghn_cod_amount)
+  )
+  if (edited) {
+    return { action: "block", reason: `GHN reports COD ${edited.data?.ghn_cod_reported} VND on ${edited.id}, sent ${num(edited.data?.ghn_cod_amount)} VND` }
   }
   const collected = live.reduce((sum, f) => sum + Math.round(num(f.data?.ghn_cod_amount)), 0)
   const payment = open[0]
