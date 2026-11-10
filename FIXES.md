@@ -50,6 +50,18 @@ Rules: official extension points only (subclassing, config, workflow hooks, midd
 - **Tests:** template QC: admin login on localhost and on the public domain.
 - **Remove when:** never as a Medusa fix; keep as a template default.
 
+### F-004 · Admin "Reset password" sends no email (project config)
+
+- **Symptom:** admin "Reset password" says the email was sent, but nothing arrives; the log shows `Processing auth.password_reset ... 0 subscribers`.
+- **Cause:** Medusa 2.22.x emits `auth.password_reset` but does not send the email itself; the default config only has `notification-local` on the `feed` channel, no `email` channel.
+- **Medusa versions:** 2.22.x.
+- **Upstream issue:** none; documented behaviour (the project must subscribe).
+- **Fix:** subscriber on `auth.password_reset` sends a Notification on channel `email`, template `password-reset` (`data.url`, `email`, `actor_type`). Without an email provider: dev logs the link, production only reports an error (never logs the token). Admin link = `MEDUSA_ADMIN_URL` or `MEDUSA_BACKEND_URL` + `/app` (admin `backendUrl` is `/`, F-003); customer link = `STOREFRONT_URL` or the last entry of `STORE_CORS`. Source: YaahSport `apps/backend/src/subscribers/password-reset.ts` (`2edd0ec`).
+- **Place:** template `teknix-ecom-template` (`src/subscribers`, projects get it from the template) — owned by the template thread.
+- **Tests:** `POST /auth/user/emailpass/reset-password` → link in log → `POST /auth/user/emailpass/update` 200; old password 401; reused token 401 (checked 2026-11-10 on YaahSport).
+- **Remove when:** never as a fix; once a real email provider is chosen, only add the template.
+- **Note:** the dev server in the container does not reload on a new subscriber or `medusa-config` change made from macOS: restart the `app` container and fully reload the admin tab (an old tab keeps the old `backendUrl` and still gets 401).
+
 ## To check
 
 - **GHN (`packages/fulfillment-ghn`, `packages/shipping-core`):** not on `main` yet (branch `feat/shipping-ghn`). After that PR merges, check whether GHN relies on Medusa behaviour that belongs here (e.g. a fulfillment provider base in core, like F-001) and add entries.

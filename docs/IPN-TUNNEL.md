@@ -4,7 +4,7 @@ Gateways call the backend from the internet, so the webhook URL must be public H
 
 ## 1. Public URL
 
-The backend is already routed through the tunnel, e.g. `https://yaahsport-api-dev.yaah.me` -> `app:9000`.
+The backend is already routed through the tunnel, e.g. `https://yaahsport-api-dev.teknix.dev` -> `app:9000`.
 Webhook URLs:
 
 | Gateway | URL |
@@ -19,7 +19,7 @@ Cloudflare Zero Trust > Access > Applications > Add an application > Self-hosted
 - Application domain: subdomain `<backend subdomain>`, domain `<zone>`, **path `hooks`** (covers `/hooks/*`, all gateways).
 - Policy: action **Bypass**, include **Everyone**.
 
-A path-scoped application is more specific than the wildcard app, so only `/hooks/*` skips login; Admin and the Store API stay protected.
+A path-scoped application is more specific than the app that protects the host, so only `/hooks/*` skips login; Admin and the Store API stay protected. If the host is protected by an app that lists each hostname (no wildcard), put the `/hooks` bypass on that same hostname.
 
 Check from any machine (expect `200`, not a 302 to the Access login):
 
