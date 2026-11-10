@@ -314,6 +314,38 @@ describe("provider", () => {
     expect(result.data).toMatchObject({ ghn_order_code: "LYGF7F", ghn_cod_amount: 450000, ghn_env: "staging" })
   })
 
+  it("declares the goods value for insurance only when asked, capped", async () => {
+    const routes = {
+      "/preview": () => ok({ order_code: "", total_fee: 45000 }),
+      "/create": () => ok({ order_code: "LYINS1", total_fee: 80000 }),
+    }
+    const order = {
+      metadata: {},
+      shipping_address: vnAddress(HCM, SAI_GON),
+      items: [{ id: "li_1", unit_price: 1_200_000, variant: { weight: 250 } }, { id: "li_2", unit_price: { numeric: 900_000 }, variant: { weight: 250 } }],
+    } as any
+    const lines = [{ line_item_id: "li_1", quantity: 2, title: "Giày" }, { line_item_id: "li_2", quantity: 1, title: "Áo" }] as any
+
+    const off = provider({}, routes)
+    await off.service.createFulfillment({ service_type_id: 2 }, lines, order, { id: "ful_off" } as any)
+    expect(off.calls[0].body.insurance_value).toBe(0)
+
+    const on = provider({ declare_value: true }, routes)
+    const result = await on.service.createFulfillment({ service_type_id: 2 }, lines, order, { id: "ful_on" } as any)
+    expect(on.calls[0].body.insurance_value).toBe(3_300_000)
+    expect(result.data).toMatchObject({ ghn_insurance_value: 3_300_000 })
+    await on.service.calculatePrice({ id: "ghn-standard" }, {}, {
+      shipping_address: vnAddress(HCM, SAI_GON),
+      items: [{ quantity: 5, unit_price: 1_200_000, variant: { weight: 300 } }],
+    } as any)
+    expect(on.calls[1].body.insurance_value).toBe(5_000_000)
+
+    const capped = provider({ declare_value: true, insurance_max: 2_000_000 }, routes)
+    await capped.service.createFulfillment({ service_type_id: 2 }, lines, order, { id: "ful_cap" } as any)
+    expect(capped.calls[0].body.insurance_value).toBe(2_000_000)
+    expect(() => GhnFulfillmentService.validateOptions({ ...base, insurance_max: 6_000_000 })).toThrow(/insurance_max/)
+  })
+
   it("refuses to create without a valid phone", async () => {
     const { service, calls } = provider()
     await expect(
