@@ -64,7 +64,7 @@ Rules: official extension points only (subclassing, config, workflow hooks, midd
 
 ## To check
 
-- **GHN (`packages/fulfillment-ghn`, `packages/shipping-core`):** not on `main` yet (branch `feat/shipping-ghn`). After that PR merges, check whether GHN relies on Medusa behaviour that belongs here (e.g. a fulfillment provider base in core, like F-001) and add entries.
+- **GHN (`packages/fulfillment-ghn`, `packages/shipping-core`):** checked 2026-11-10 after the rebase on `main`: no workaround for Medusa behaviour, so no F-xxx and no fulfillment base in core. Two notes for any carrier plugin: the document methods (`getFulfillmentDocuments`, `retrieveDocuments`) are typed `Promise<never[]>` / `Promise<void>` in 2.22.x but Medusa passes the value through (returned as `any`); a plugin with an admin widget must export `./admin` in `package.json` or the dashboard does not load it. Re-check when a second carrier is added.
 
 ## Removed
 
