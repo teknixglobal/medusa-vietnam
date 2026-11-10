@@ -5,7 +5,7 @@ module.exports = {
   },
   testEnvironment: "node",
   moduleFileExtensions: ["js", "ts", "json"],
-  modulePathIgnorePatterns: ["dist/", "\\.medusa/"],
+  modulePathIgnorePatterns: ["dist/", "\\.medusa/", "<rootDir>/\\.claude/"],
   testMatch: ["<rootDir>/packages/*/src/**/__tests__/**/*.unit.spec.[jt]s"],
   moduleNameMapper: {
     "^@teknixglobal/medusa-vietnam-core$": "<rootDir>/packages/core/src",
