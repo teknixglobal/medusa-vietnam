@@ -9,6 +9,10 @@ The interface between the packages of this repo, a Medusa backend, and a storefr
 | `@teknixglobal/medusa-payment-sepay` | SePay provider |
 | `@teknixglobal/medusa-payment-vnpay` | VNPay provider + IPN/return routes (a Medusa plugin) |
 | `@teknixglobal/medusa-vietnam` | Optional plugin: store route with vi/en labels |
+| `@teknixglobal/medusa-vietnam-shipping-core` | Shipping helpers: carrier contract, 2025 VN address data (not installed directly) |
+| `@teknixglobal/medusa-fulfillment-ghn` | GHN fulfillment provider + webhook, sync job, address store routes (a Medusa plugin) |
+
+Payments: sections 1-8. Shipping: section 9.
 
 ## 1. Install
 
@@ -125,3 +129,21 @@ Locale: `?locale`, else `Accept-Language`, else `vi`.
 ## 8. Out of scope
 
 Tax, e-invoices, promotions, commissions/affiliate, Mercur payouts. They listen to `payment.captured` / `payment.refunded`.
+
+## 9. Shipping
+
+Install and options: `packages/fulfillment-ghn/README.md`. Carrier packages share `shipping-core`; a new carrier follows the same contract.
+
+| Item | Contract |
+|---|---|
+| Provider | `@teknixglobal/medusa-fulfillment-ghn/providers/ghn`, id `ghn` → `provider_id` `ghn_ghn`. Plugin `@teknixglobal/medusa-fulfillment-ghn` registers the routes, workflow, job and subscriber |
+| Shipping options | `ghn-standard`, `ghn-heavy`, `ghn-return`; `price_type: "calculated"` |
+| Price | Carrier quote, cached; when the carrier fails, `fallback_amount` is shown and checkout is not blocked (omit it to block instead) |
+| Address | `shipping_address.metadata.vn_address = { scheme: "2025", province_code, ward_code, geo? }` with NSO codes (34 provinces, no district). `province` / `city` are display only. Required by `validateFulfillmentData` |
+| Phone | `shipping_address.phone`, a valid Vietnamese number; `createFulfillment` refuses the order without it (storefronts should require it for `vn`) |
+| COD | `order.metadata.vn_shipping_cod_amount` (VND integer), written on `order.placed` for `pp_cod_*` payments. Missing = prepaid (COD 0) |
+| Status | `fulfillment.data.ghn_status`, `shipment_status`, `shipment_flag` (needs attention), `ghn_reason`, `ghn_reason_code`. Picked up → Medusa shipment; delivered → Medusa delivered. Never moves back from a final status |
+| Webhook | `POST /hooks/ghn`, header `X-Teknix-Webhook-Secret: <webhook_secret>` (or `webhook_header`). Payloads are unsigned: the order is always re-read from GHN. 503 on temporary errors so GHN retries. Job `ghn-sync-shipments` every 30 min covers missed webhooks |
+| Store API | `GET /store/vn-address/provinces` → `{ provinces: [{ code, name, full_name }], dataset }`; `GET /store/vn-address/provinces/:code/wards` → `{ wards: [{ code, name, full_name, postal_code }] }` (publishable key) |
+| Admin API | `GET /admin/ghn/fulfillments/:id/label?format=A5\|80x80\|52x70` → `{ url }` (~30 min); `POST /admin/ghn/fulfillments/:id/sync` |
+| Out of scope | Capturing or refunding payments (payments packages; COD is captured in Admin when the cash is collected), return pickups (book in the GHN portal) |
