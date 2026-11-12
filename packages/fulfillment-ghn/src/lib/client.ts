@@ -1,4 +1,4 @@
-import { CarrierError } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { CarrierError } from "@teknixglobal/teknix-vietnam-shipping-core"
 
 export type GhnEnv = "staging" | "production"
 

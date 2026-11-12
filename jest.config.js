@@ -8,7 +8,7 @@ module.exports = {
   modulePathIgnorePatterns: ["dist/", "\\.medusa/", "<rootDir>/\\.claude/"],
   testMatch: ["<rootDir>/packages/*/src/**/__tests__/**/*.unit.spec.[jt]s"],
   moduleNameMapper: {
-    "^@teknixglobal/medusa-vietnam-core$": "<rootDir>/packages/core/src",
-    "^@teknixglobal/medusa-vietnam-shipping-core$": "<rootDir>/packages/shipping-core/src",
+    "^@teknixglobal/teknix-vietnam-core$": "<rootDir>/packages/core/src",
+    "^@teknixglobal/teknix-vietnam-shipping-core$": "<rootDir>/packages/shipping-core/src",
   },
 }

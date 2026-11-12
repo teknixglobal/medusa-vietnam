@@ -12,7 +12,7 @@ import {
   matchVnWard,
   normalizeVnName,
   VN_UNITS_DATASET,
-} from "@teknixglobal/medusa-vietnam-shipping-core"
+} from "@teknixglobal/teknix-vietnam-shipping-core"
 
 const env = process.env.GHN_ENV ?? "production"
 const token = process.env.GHN_TOKEN

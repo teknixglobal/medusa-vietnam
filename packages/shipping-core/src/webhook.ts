@@ -1,4 +1,4 @@
-import { safeEqual } from "@teknixglobal/medusa-vietnam-core"
+import { safeEqual } from "@teknixglobal/teknix-vietnam-core"
 import { MemoryTtlCache, type ShippingCache } from "./cache"
 import type { HeaderBag } from "./types"
 

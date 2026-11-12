@@ -1,4 +1,4 @@
-import { createStatusMapper } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { createStatusMapper } from "@teknixglobal/teknix-vietnam-shipping-core"
 
 /** GHN order status codes (developer.ghn.vn, Order Status Codes) -> neutral status. */
 export const GHN_STATUS_TABLE = {

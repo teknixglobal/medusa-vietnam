@@ -1,7 +1,7 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import type { Logger } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { isCarrierError, WebhookDeduper, type HeaderBag } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { isCarrierError, WebhookDeduper, type HeaderBag } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { ghnRuntimeFrom } from "../../../lib/config"
 import { syncGhnShipmentWorkflow } from "../../../workflows/sync-ghn-shipment"
 

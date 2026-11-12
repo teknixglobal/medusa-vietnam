@@ -1,7 +1,7 @@
 import type { SubscriberArgs, SubscriberConfig } from "@medusajs/framework"
 import type { Logger } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys } from "@medusajs/framework/utils"
-import { VN_COD_METADATA_KEY } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { VN_COD_METADATA_KEY } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { codAmountForOrder } from "../workflows/plan"
 import { setVnCodAmountWorkflow } from "../workflows/set-vn-cod-amount"
 

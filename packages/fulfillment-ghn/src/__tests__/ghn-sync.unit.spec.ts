@@ -1,4 +1,4 @@
-import type { ShipmentSnapshot } from "@teknixglobal/medusa-vietnam-shipping-core"
+import type { ShipmentSnapshot } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { ghnRuntimeFrom } from "../lib/config"
 import { codAmountForOrder, planGhnSync } from "../workflows/plan"
 import type { GhnFulfillmentRef } from "../workflows/steps/ghn-sync"
@@ -87,7 +87,7 @@ describe("codAmountForOrder", () => {
 
 describe("ghnRuntimeFrom", () => {
   const container = (modules: unknown) => ({ resolve: () => ({ modules }) }) as any
-  const ghn = { resolve: "@teknixglobal/medusa-fulfillment-ghn/providers/ghn", id: "ghn", options: { env: "staging", token: "t", shop_id: "236959", webhook_secret: "s" } }
+  const ghn = { resolve: "@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin/providers/ghn", id: "ghn", options: { env: "staging", token: "t", shop_id: "236959", webhook_secret: "s" } }
 
   it("finds the GHN provider in array or keyed module config", () => {
     const fromArray = ghnRuntimeFrom(container([{ resolve: "@medusajs/medusa/fulfillment", options: { providers: [{ resolve: "x", id: "manual" }, ghn] } }]))

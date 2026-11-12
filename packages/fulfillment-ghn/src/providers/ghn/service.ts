@@ -22,7 +22,7 @@ import {
   type ParcelItem,
   type ParcelOptions,
   type VnContact,
-} from "@teknixglobal/medusa-vietnam-shipping-core"
+} from "@teknixglobal/teknix-vietnam-shipping-core"
 import { GhnAdapter } from "../../lib/adapter"
 import type { GhnEnv, GhnOrderBody } from "../../lib/client"
 
@@ -31,7 +31,7 @@ export type GhnPickupOption = {
   phone: string
   /** House number and street. */
   address_line: string
-  /** NSO codes (see @teknixglobal/medusa-vietnam-shipping-core listVnProvinces / listVnWards). */
+  /** NSO codes (see @teknixglobal/teknix-vietnam-shipping-core listVnProvinces / listVnWards). */
   province_code: string
   ward_code: string
 }

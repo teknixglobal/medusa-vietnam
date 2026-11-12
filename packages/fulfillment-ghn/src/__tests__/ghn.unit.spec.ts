@@ -5,7 +5,7 @@ import {
   listVnProvinces,
   listVnWards,
   VN_COD_METADATA_KEY,
-} from "@teknixglobal/medusa-vietnam-shipping-core"
+} from "@teknixglobal/teknix-vietnam-shipping-core"
 import { GhnAdapter } from "../lib/adapter"
 import { ghnPlaceFor, GHN_MAP_INFO } from "../lib/address-map"
 import { GhnClient, parseGhnJson } from "../lib/client"
