@@ -1,5 +1,5 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
-import { listVnProvinces, VN_UNITS_DATASET } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { listVnProvinces, VN_UNITS_DATASET } from "@teknixglobal/teknix-vietnam-shipping-core"
 
 /**
  * GET /store/vn-address/provinces: the 34 provinces of the 2025 map (NSO codes),

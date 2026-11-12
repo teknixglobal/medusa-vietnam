@@ -15,9 +15,12 @@ export type GhnRuntime = {
 
 const cache = new WeakMap<object, GhnRuntime | null>()
 
+const GHN_PACKAGE_NAMES = ["teknix-vietnam-fulfillment-ghn-medusa-plugin", "medusa-fulfillment-ghn"]
+
 function isGhnProvider(p: ProviderEntry): boolean {
   const resolve = String(p.resolve ?? "")
-  return resolve.includes("medusa-fulfillment-ghn") || /providers\/ghn\/?$/.test(resolve)
+  // New package name (D-093), plus the old one for medusa-config files not yet updated
+  return GHN_PACKAGE_NAMES.some((n) => resolve.includes(n)) || /providers\/ghn\/?$/.test(resolve)
 }
 
 /**

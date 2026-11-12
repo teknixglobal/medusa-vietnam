@@ -1,6 +1,6 @@
-# @teknixglobal/medusa-vietnam-shipping-core
+# @teknixglobal/teknix-vietnam-shipping-core
 
-Shared core for Vietnamese shipping carriers on Medusa v2 (2.22.3), used by the carrier packages in [medusa-vietnam](https://github.com/teknixglobal/medusa-vietnam) (GHN first). You install a carrier package, not this one.
+Shared core for Vietnamese shipping carriers on Medusa v2 (2.22.3), used by the carrier packages in [teknix-vietnam-commerce-plugins](https://github.com/teknixglobal/teknix-vietnam-commerce-plugins) (GHN first). You install a carrier package, not this one.
 
 | Export | What it is for |
 |---|---|
@@ -27,4 +27,4 @@ const a = buildVnAddress("01", "00004")
 
 ## Updating the administrative data
 
-`pnpm --filter @teknixglobal/medusa-vietnam-shipping-core data:vn-units` downloads the pinned release, checks its sha256 and rewrites `src/data/vn-units.json`. To move to a new release, change `TAG` and `SHA256` in `scripts/build-vn-units.mjs`, run it, review the diff and add a changeset. Data licence: see `NOTICE`.
+`pnpm --filter @teknixglobal/teknix-vietnam-shipping-core data:vn-units` downloads the pinned release, checks its sha256 and rewrites `src/data/vn-units.json`. To move to a new release, change `TAG` and `SHA256` in `scripts/build-vn-units.mjs`, run it, review the diff and add a changeset. Data licence: see `NOTICE`.

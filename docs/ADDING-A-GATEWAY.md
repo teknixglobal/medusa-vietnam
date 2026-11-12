@@ -22,10 +22,10 @@ Read the gateway docs and write the answers into the package README. Every later
 ## 1. Scaffold
 
 ```bash
-cp -r packages/cod packages/<code>       # then rename
+cp -r packages/payment-cod packages/payment-<code>       # then rename
 ```
 
-- `package.json`: name `@teknixglobal/medusa-payment-<code>`, dependency `@teknixglobal/medusa-vietnam-core: workspace:^`, peer `@medusajs/framework: ~2.22.3`. Gateway SDKs go in this package only, never in core.
+- `package.json`: name `@teknixglobal/teknix-vietnam-payment-<code>-medusa-plugin`, dependency `@teknixglobal/teknix-vietnam-core: workspace:^`, peer `@medusajs/framework: ~2.22.3`. Gateway SDKs go in this package only, never in core.
 - `src/index.ts`: `export default ModuleProvider(Modules.PAYMENT, { services: [Service] })`.
 - `static identifier = "<code>"` -> provider id `pp_<code>_<id>`.
 - The service extends `TeknixPaymentProviderBase` from core (not `AbstractPaymentProvider` directly): it carries the Medusa fixes in [FIXES.md](../FIXES.md).
@@ -84,7 +84,7 @@ GitHub Actions does the rest (see docs/RELEASING.md): merging to main opens a "V
 - One return URL with gateway codes: return to the backend (`/hooks/<code>/return`), verify, redirect to the stored `return_url` with `result=...`. The storefront stays gateway-agnostic, and the redirect target comes from the DB, not the query (no open redirect).
 - Reference charset: VNPay wants alphanumeric; Medusa ids have `_`. Use the ULID part and map back.
 - Dates in GMT+7: build them from UTC + 7h, never from the server's local time.
-- Read the SDK before using it: `vnpay` 2.5.2 looked fine but had 4 defects (see packages/vnpay/README.md). Its output is still a useful cross-check vector in tests.
+- Read the SDK before using it: `vnpay` 2.5.2 looked fine but had 4 defects (see packages/payment-vnpay/README.md). Its output is still a useful cross-check vector in tests.
 - Sandbox E2E 2026-11-09: payment URL, return and IPN signatures verified with real VNPay transactions (orders #10, #11, cancel 24). The querydr/refund API answered `99 Unexpected error` to everything (even wrong checksum/TMN, even via the SDK): don't make a status API the only proof. A signed callback recorded on the session (route -> workflow -> `updatePaymentSession` -> provider `updatePayment` checks the signature) is enough; the status API is the fallback.
 - Error answers from VNPay's API are unsigned: accept unsigned non-00 answers (they can only mean pending/error), never an unsigned 00.
 - `updatePayment` returning `{ data: {} }` wipes the session data (Medusa replaces it). SePay and VNPay had this; fixed.

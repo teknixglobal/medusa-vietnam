@@ -1,12 +1,12 @@
 {
-  "name": "@teknixglobal/medusa-fulfillment-ghn",
+  "name": "@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin",
   "version": "0.1.0",
   "description": "GHN (Giao Hàng Nhanh) fulfillment provider for Medusa v2 (plugin): calculated rates on the 2025 two-tier address map, create/cancel/return shipments, labels, status webhook.",
   "author": "Teknix (https://github.com/teknixglobal)",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/teknixglobal/medusa-vietnam.git",
+    "url": "git+https://github.com/teknixglobal/teknix-vietnam-commerce-plugins.git",
     "directory": "packages/fulfillment-ghn"
   },
   "files": [
@@ -48,8 +48,8 @@
     "node": ">=22.12.0"
   },
   "dependencies": {
-    "@teknixglobal/medusa-vietnam-core": "workspace:^",
-    "@teknixglobal/medusa-vietnam-shipping-core": "workspace:^"
+    "@teknixglobal/teknix-vietnam-core": "workspace:^",
+    "@teknixglobal/teknix-vietnam-shipping-core": "workspace:^"
   },
   "publishConfig": {
     "access": "public"

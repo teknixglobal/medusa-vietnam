@@ -3,7 +3,7 @@
 # 2. On main, this workflow opens/updates the "Version Packages" PR.
 # 3. Merging that PR runs it again: tests, build, then publishes the new versions.
 # Setup once per package on npmjs.com: Settings > Trusted Publisher > GitHub Actions,
-# repository teknixglobal/medusa-vietnam, workflow file release.yml (docs/RELEASING.md).
+# repository teknixglobal/teknix-vietnam-commerce-plugins, workflow file release.yml (docs/RELEASING.md).
 name: release
 on:
   push:

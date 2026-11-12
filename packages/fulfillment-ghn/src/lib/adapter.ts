@@ -12,7 +12,7 @@ import {
   type ShipmentSnapshot,
   type VnContact,
   type WebhookEvent,
-} from "@teknixglobal/medusa-vietnam-shipping-core"
+} from "@teknixglobal/teknix-vietnam-shipping-core"
 import { ghnPlaceFor } from "./address-map"
 import { GHN_TRACKING_URL, GhnClient, type GhnClientOptions, type GhnOrderBody, type GhnSwitchResult } from "./client"
 import { ghnStatus } from "./status"

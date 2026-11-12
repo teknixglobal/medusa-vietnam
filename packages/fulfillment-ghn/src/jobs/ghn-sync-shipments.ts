@@ -1,7 +1,7 @@
 import type { MedusaContainer } from "@medusajs/framework"
 import type { IFulfillmentModuleService, Logger } from "@medusajs/framework/types"
 import { ContainerRegistrationKeys, Modules } from "@medusajs/framework/utils"
-import { isFinalStatus, type ShipmentStatus } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { isFinalStatus, type ShipmentStatus } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { ghnRuntimeFrom } from "../lib/config"
 import { syncGhnShipmentWorkflow } from "../workflows/sync-ghn-shipment"
 

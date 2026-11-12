@@ -3,7 +3,7 @@ import {
   canTransition,
   type ShipmentSnapshot,
   type ShipmentStatus,
-} from "@teknixglobal/medusa-vietnam-shipping-core"
+} from "@teknixglobal/teknix-vietnam-shipping-core"
 import type { GhnFulfillmentRef } from "./steps/ghn-sync"
 
 export type GhnSyncPlan = {

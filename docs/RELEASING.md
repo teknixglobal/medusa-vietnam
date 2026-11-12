@@ -17,9 +17,9 @@ npm cannot attach a trusted publisher to a package that does not exist yet, so t
 3. First publish, in the dev container (only the listed packages):
    ```bash
    set -a; . ../../_teknix/secrets/npm-publish.env; set +a
-   docker compose run --rm -e NPM_TOKEN dev sh -c 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /tmp/npmrc && NPM_CONFIG_USERCONFIG=/tmp/npmrc pnpm build && NPM_CONFIG_USERCONFIG=/tmp/npmrc node scripts/publish.mjs @teknixglobal/medusa-vietnam-core @teknixglobal/medusa-payment-cod @teknixglobal/medusa-payment-sepay @teknixglobal/medusa-payment-vnpay @teknixglobal/medusa-vietnam @teknixglobal/medusa-vietnam-shipping-core @teknixglobal/medusa-fulfillment-ghn'
+   docker compose run --rm -e NPM_TOKEN dev sh -c 'echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > /tmp/npmrc && NPM_CONFIG_USERCONFIG=/tmp/npmrc pnpm build && NPM_CONFIG_USERCONFIG=/tmp/npmrc node scripts/publish.mjs @teknixglobal/teknix-vietnam-core @teknixglobal/teknix-vietnam-payment-cod-medusa-plugin @teknixglobal/teknix-vietnam-payment-sepay-medusa-plugin @teknixglobal/teknix-vietnam-payment-vnpay-medusa-plugin @teknixglobal/teknix-vietnam-commerce-medusa-plugin @teknixglobal/teknix-vietnam-shipping-core @teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin'
    ```
-4. For each package on npmjs.com: Settings > Trusted Publisher > GitHub Actions: organization `teknixglobal`, repository `medusa-vietnam`, workflow `release.yml`, no environment. Then Settings > Publishing access: require 2FA and disallow tokens.
+4. For each package on npmjs.com: Settings > Trusted Publisher > GitHub Actions: organization `teknixglobal`, repository `teknix-vietnam-commerce-plugins`, workflow `release.yml`, no environment. Then Settings > Publishing access: require 2FA and disallow tokens.
 5. Delete the token (npmjs.com > Access Tokens) and the secrets file.
 6. GitHub repo > Settings > Secrets and variables > Actions > Variables: `RELEASE_ENABLED=true`.
 

@@ -8,8 +8,8 @@ Where a fix goes (decision D-070):
 
 | Scope | Place |
 |---|---|
-| Medusa behaviour that 2+ of our plugins rely on | `@teknixglobal/medusa-vietnam-core` (base classes, helpers) |
-| Must run even when no provider plugin is installed (routes, middleware) | `@teknixglobal/medusa-vietnam` (plugin) |
+| Medusa behaviour that 2+ of our plugins rely on | `@teknixglobal/teknix-vietnam-core` (base classes, helpers) |
+| Must run even when no provider plugin is installed (routes, middleware) | `@teknixglobal/teknix-vietnam-commerce-medusa-plugin` (plugin) |
 | Project configuration and dependencies | template `teknix-ecom-template`: `withTeknix(config)` + `pnpm.overrides`, projects get it via `copier update` |
 | Only one plugin cares | that plugin |
 
@@ -25,7 +25,7 @@ Rules: official extension points only (subclassing, config, workflow hooks, midd
 - **Upstream issue:** none found (searched medusajs/medusa issues 2026-11-10). Not filed.
 - **Fix:** `TeknixPaymentProviderBase` in `packages/core/src/payment-provider.ts` owns `updatePayment`; providers implement `updateSessionData` and return only a patch, which is merged over the stored data. `transientDataKeys` lists input-only keys that are never stored (VNPay: `vnpay_callback`). Helpers `splitSessionData` / `keepSessionData` for providers that cannot extend the base.
 - **Used by:** cod, sepay, vnpay. A new payment provider must extend the base and must not override `updatePayment`.
-- **Tests:** `packages/core/src/__tests__/payment-provider.unit.spec.ts`, `packages/cod/src/__tests__/cod.unit.spec.ts`, `updatePayment` cases in the sepay and vnpay specs.
+- **Tests:** `packages/core/src/__tests__/payment-provider.unit.spec.ts`, `packages/payment-cod/src/__tests__/cod.unit.spec.ts`, `updatePayment` cases in the sepay and vnpay specs.
 - **Remove when:** Medusa merges provider data into the stored session data (or passes the stored data to `updatePayment` and documents partial returns). Then `updatePayment` can go back into each provider, or the base stays as a thin pass-through.
 
 ### F-002 · Translation module must be declared explicitly (project config)

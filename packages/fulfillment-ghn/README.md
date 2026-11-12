@@ -1,6 +1,6 @@
-# @teknixglobal/medusa-fulfillment-ghn
+# @teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin
 
-GHN (Giao Hàng Nhanh) fulfillment provider for Medusa v2 (2.22.x), packaged as a plugin. Built on [`@teknixglobal/medusa-vietnam-shipping-core`](../shipping-core) and the 2025 two-tier address map (34 provinces, no district).
+GHN (Giao Hàng Nhanh) fulfillment provider for Medusa v2 (2.22.x), packaged as a plugin. Built on [`@teknixglobal/teknix-vietnam-shipping-core`](../shipping-core) and the 2025 two-tier address map (34 provinces, no district).
 
 Status: 0.1.0, not published. Provider checked against GHN staging; status webhook, COD subscriber and sync job unit-tested, not yet run end to end (needs a public URL). Storefront address form comes next.
 
@@ -48,12 +48,12 @@ Webhook de-duplication is in memory: with several servers, handling is still saf
 
 ```ts
 // medusa-config.ts
-plugins: [{ resolve: "@teknixglobal/medusa-fulfillment-ghn", options: {} }],
+plugins: [{ resolve: "@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin", options: {} }],
 modules: [{
   resolve: "@medusajs/medusa/fulfillment",
   options: { providers: [
     { resolve: "@medusajs/medusa/fulfillment-manual", id: "manual" },
-    { resolve: "@teknixglobal/medusa-fulfillment-ghn/providers/ghn", id: "ghn", options: {
+    { resolve: "@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin/providers/ghn", id: "ghn", options: {
       env: process.env.GHN_ENV,              // staging | production (tokens only work on their own gateway)
       token: process.env.GHN_TOKEN,
       shop_id: process.env.GHN_SHOP_ID,
@@ -78,7 +78,7 @@ Other options: `payment_type_id` (1 shop pays GHN, default; 2 recipient pays), `
 GHN v3 master data uses its own ids. `src/data/ghn-map.json` maps every NSO ward to GHN's id and exact name (3321/3321, one-to-one, built from the production catalogue on 2026-11-09). Rebuild after a dataset update:
 
 ```bash
-GHN_ENV=production GHN_TOKEN=... pnpm --filter @teknixglobal/medusa-fulfillment-ghn data:ghn-map
+GHN_ENV=production GHN_TOKEN=... pnpm --filter @teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin data:ghn-map
 ```
 
 The script refuses to write a partial map. GHN's staging catalogue lags production (5 ward names differed on 2026-11-09), so build from production.

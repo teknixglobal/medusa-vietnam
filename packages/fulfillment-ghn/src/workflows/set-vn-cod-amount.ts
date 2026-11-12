@@ -1,5 +1,5 @@
 import { createWorkflow, WorkflowResponse } from "@medusajs/framework/workflows-sdk"
-import { VN_COD_METADATA_KEY } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { VN_COD_METADATA_KEY } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { setOrderMetadataStep } from "./steps/ghn-sync"
 
 export type SetVnCodAmountInput = { order_id: string; amount: number }

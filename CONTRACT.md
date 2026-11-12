@@ -1,37 +1,37 @@
-# CONTRACT · medusa-vietnam
+# CONTRACT · teknix-vietnam-commerce-plugins (trước là medusa-vietnam)
 
 The interface between the packages of this repo, a Medusa backend, and a storefront. Changing anything here is a breaking change for every gateway package (minor bump while < 1.0).
 
 | Package | Role |
 |---|---|
-| `@teknixglobal/medusa-vietnam-core` | Shared helpers (not installed directly) |
-| `@teknixglobal/medusa-payment-cod` | COD provider |
-| `@teknixglobal/medusa-payment-sepay` | SePay provider |
-| `@teknixglobal/medusa-payment-vnpay` | VNPay provider + IPN/return routes (a Medusa plugin) |
-| `@teknixglobal/medusa-vietnam` | Optional plugin: store route with vi/en labels |
-| `@teknixglobal/medusa-vietnam-shipping-core` | Shipping helpers: carrier contract, 2025 VN address data (not installed directly) |
-| `@teknixglobal/medusa-fulfillment-ghn` | GHN fulfillment provider + webhook, sync job, address store routes (a Medusa plugin) |
+| `@teknixglobal/teknix-vietnam-core` | Shared helpers (not installed directly) |
+| `@teknixglobal/teknix-vietnam-payment-cod-medusa-plugin` | COD provider |
+| `@teknixglobal/teknix-vietnam-payment-sepay-medusa-plugin` | SePay provider |
+| `@teknixglobal/teknix-vietnam-payment-vnpay-medusa-plugin` | VNPay provider + IPN/return routes (a Medusa plugin) |
+| `@teknixglobal/teknix-vietnam-commerce-medusa-plugin` | Optional plugin: store route with vi/en labels |
+| `@teknixglobal/teknix-vietnam-shipping-core` | Shipping helpers: carrier contract, 2025 VN address data (not installed directly) |
+| `@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin` | GHN fulfillment provider + webhook, sync job, address store routes (a Medusa plugin) |
 
 Payments: sections 1-8. Shipping: section 9.
 
 ## 1. Install
 
 ```bash
-npm i @teknixglobal/medusa-payment-cod @teknixglobal/medusa-payment-sepay @teknixglobal/medusa-payment-vnpay
-npm i @teknixglobal/medusa-vietnam   # optional: GET /store/vietnam-payments/methods
+npm i @teknixglobal/teknix-vietnam-payment-cod-medusa-plugin @teknixglobal/teknix-vietnam-payment-sepay-medusa-plugin @teknixglobal/teknix-vietnam-payment-vnpay-medusa-plugin
+npm i @teknixglobal/teknix-vietnam-commerce-medusa-plugin   # optional: GET /store/vietnam-payments/methods
 ```
 
 ```ts
 // medusa-config.ts
 plugins: [
-  { resolve: "@teknixglobal/medusa-vietnam", options: {} },        // optional
-  { resolve: "@teknixglobal/medusa-payment-vnpay", options: {} },  // VNPay: registers /hooks/vnpay/*
+  { resolve: "@teknixglobal/teknix-vietnam-commerce-medusa-plugin", options: {} },        // optional
+  { resolve: "@teknixglobal/teknix-vietnam-payment-vnpay-medusa-plugin", options: {} },  // VNPay: registers /hooks/vnpay/*
 ],
 modules: [{
   resolve: "@medusajs/medusa/payment",
   options: { providers: [
-    { resolve: "@teknixglobal/medusa-payment-cod", id: "cod", options: { max_amount: 5000000 } },
-    { resolve: "@teknixglobal/medusa-payment-sepay", id: "sepay", options: {
+    { resolve: "@teknixglobal/teknix-vietnam-payment-cod-medusa-plugin", id: "cod", options: { max_amount: 5000000 } },
+    { resolve: "@teknixglobal/teknix-vietnam-payment-sepay-medusa-plugin", id: "sepay", options: {
         env: process.env.SEPAY_ENV,                    // sandbox | production
         merchant_id: process.env.SEPAY_MERCHANT_ID,
         secret_key: process.env.SEPAY_SECRET_KEY,
@@ -39,7 +39,7 @@ modules: [{
         return_url_origins: process.env.STORE_CORS,     // origins allowed in data.return_url
         payment_method: process.env.SEPAY_PAYMENT_METHOD, // optional: CARD | BANK_TRANSFER | NAPAS_BANK_TRANSFER
     } },
-    { resolve: "@teknixglobal/medusa-payment-vnpay/providers/vnpay", id: "vnpay", options: {
+    { resolve: "@teknixglobal/teknix-vietnam-payment-vnpay-medusa-plugin/providers/vnpay", id: "vnpay", options: {
         env: process.env.VNPAY_ENV,                    // sandbox | production
         tmn_code: process.env.VNPAY_TMN_CODE,
         hash_secret: process.env.VNPAY_HASH_SECRET,
@@ -109,7 +109,7 @@ Then enable the providers on the region (Admin > Settings > Regions, or `updateR
 
 ## 6. Store API
 
-`GET /store/vietnam-payments/methods?region_id=reg_...&locale=vi` (publishable key required; needs the optional `@teknixglobal/medusa-vietnam` plugin)
+`GET /store/vietnam-payments/methods?region_id=reg_...&locale=vi` (publishable key required; needs the optional `@teknixglobal/teknix-vietnam-commerce-medusa-plugin` plugin)
 
 ```json
 { "locale": "vi", "payment_methods": [
@@ -136,7 +136,7 @@ Install and options: `packages/fulfillment-ghn/README.md`. Carrier packages shar
 
 | Item | Contract |
 |---|---|
-| Provider | `@teknixglobal/medusa-fulfillment-ghn/providers/ghn`, id `ghn` → `provider_id` `ghn_ghn`. Plugin `@teknixglobal/medusa-fulfillment-ghn` registers the routes, workflow, job and subscriber |
+| Provider | `@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin/providers/ghn`, id `ghn` → `provider_id` `ghn_ghn`. Plugin `@teknixglobal/teknix-vietnam-fulfillment-ghn-medusa-plugin` registers the routes, workflow, job and subscriber |
 | Shipping options | `ghn-standard`, `ghn-heavy`, `ghn-return`; `price_type: "calculated"` |
 | Price | Carrier quote, cached; when the carrier fails, `fallback_amount` is shown and checkout is not blocked (omit it to block instead) |
 | Address | `shipping_address.metadata.vn_address = { scheme: "2025", province_code, ward_code, geo? }` with NSO codes (34 provinces, no district). `province` / `city` are display only. Required by `validateFulfillmentData` |

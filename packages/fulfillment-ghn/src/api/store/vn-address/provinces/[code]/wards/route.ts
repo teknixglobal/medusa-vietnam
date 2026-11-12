@@ -1,6 +1,6 @@
 import type { MedusaRequest, MedusaResponse } from "@medusajs/framework/http"
 import { MedusaError } from "@medusajs/framework/utils"
-import { getVnProvince, listVnWards } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { getVnProvince, listVnWards } from "@teknixglobal/teknix-vietnam-shipping-core"
 
 /** GET /store/vn-address/provinces/:code/wards: wards (phường, xã, đặc khu) of one province. */
 export const GET = async (req: MedusaRequest, res: MedusaResponse) => {

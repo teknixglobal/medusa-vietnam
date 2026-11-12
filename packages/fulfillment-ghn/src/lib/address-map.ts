@@ -1,4 +1,4 @@
-import { CarrierError, getVnProvince, getVnWard, type VnLocation } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { CarrierError, getVnProvince, getVnWard, type VnLocation } from "@teknixglobal/teknix-vietnam-shipping-core"
 import map from "../data/ghn-map.json"
 
 type GhnMap = {

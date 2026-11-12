@@ -1,7 +1,7 @@
 import type { IFulfillmentModuleService, IOrderModuleService } from "@medusajs/framework/types"
 import { MedusaError, Modules } from "@medusajs/framework/utils"
 import { createStep, StepResponse } from "@medusajs/framework/workflows-sdk"
-import type { ShipmentSnapshot } from "@teknixglobal/medusa-vietnam-shipping-core"
+import type { ShipmentSnapshot } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { ghnRuntimeFrom } from "../../lib/config"
 
 /** Ask GHN for the real status: webhook payloads are not signed, so they are never trusted. */
