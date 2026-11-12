@@ -1,6 +1,6 @@
 import { capturePaymentWorkflow } from "@medusajs/medusa/core-flows"
 import { createWorkflow, WorkflowResponse } from "@medusajs/framework/workflows-sdk"
-import { VN_COD_CAPTURE_METADATA_KEY, type VnCodCaptureRecord } from "@teknixglobal/medusa-vietnam-shipping-core"
+import { VN_COD_CAPTURE_METADATA_KEY, type VnCodCaptureRecord } from "@teknixglobal/teknix-vietnam-shipping-core"
 import { setOrderMetadataStep } from "./steps/ghn-sync"
 
 export type CaptureVnCodInput = { order_id: string; payment_id: string; amount: number; record: VnCodCaptureRecord }
